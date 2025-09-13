@@ -25,87 +25,88 @@
       <label>Até</label>
       <input type="date" value="2023-09-30">
     </div>
-    <div class="btn-group">
+    <div class="button-group">
       <button class="btn btn-clear">Limpar</button>
       <button class="btn btn-apply">Aplicar</button>
-      <button class="btn btn-export">Exportar</button>
     </div>
   </div>
-
+  <div class="export-button-container">
+    <button class="btn btn-export">Exportar</button>
+  </div>
 </template>
 
 <style scoped>
-
 .filters-bar {
-  background-color: #fff;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 1.5rem;
+  padding: 1rem 2rem;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
-
 
 .filter-group {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .filter-group label {
   font-size: 1rem;
-  color: var(--vt-c-black);
-  margin-bottom: 0.25rem;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 0
 }
 
-.btn-group{
+.filter-group select,
+.filter-group input[type="date"] {
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background-color: #f8f9fa;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.button-group {
   display: flex;
   gap: 0.5rem;
   margin-left: auto;
-  align-self: flex-end;
 }
 
+.export-button-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
 
 .btn {
   padding: 0.5rem 1rem;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  border: 1px solid #ddd;
+  font-weight: bold;
+  font-size: 0.9rem;
+  height: 2.5rem;
+  transition: all 0.2s ease-in-out;
 }
 
 .btn-clear {
-  background-color: #f4f7fa;
-  font-weight: bold;
-  font-size: 0.9rem;
-  height: 3rem;
-  margin-left: auto;
-  border-radius: 6px;
-  
+  background-color: #f0f4f8;
+  color: #3b5066;
+  border: none;
 }
 
 .btn-apply {
-  background-color: #0f172aea;
+  background-color: #2c5282;
   color: #ffffff;
-  font-weight: bold;
-  font-size: 0.9rem;
-  height: 3rem;
-  border-color: #ddd;
-  margin-left: auto;
-  border-radius: 6px;
-
+  border: none;
 }
-
 
 .btn-export {
-  background-color: #0f172aea;
+  background-color: #0f172a;
   color: #ffffff;
-  font-weight: bold;
-  font-size: 0.9rem;
-  height: 3rem;
-  border-color: #ddd;
-  margin-left: auto;
-  border-radius: 6px;
+  border: none;
 }
-
 </style>
