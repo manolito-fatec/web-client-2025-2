@@ -1,4 +1,13 @@
 <script setup lang="ts">
+import SelectList from '@/components/SelectList.vue'
+import type { SelectListOption } from '@/components/types/SelectListOption.ts'
+import { type Ref, ref } from 'vue'
+
+const selectOptions: Ref<SelectListOption[]> = ref([
+  { label: 'Todos', value: 'all' },
+  { label: 'Nunes', value: '1' }
+])
+
 
 
 </script>
@@ -16,14 +25,15 @@
       <select>
         <option>Todos</option>
       </select>
+      <SelectList :options="selectOptions"/>
     </div>
     <div class="filter-group">
       <label>De</label>
-      <input type="date" value="2023-01-01">
+      <input type="date" value="2023-01-01" />
     </div>
     <div class="filter-group">
       <label>Até</label>
-      <input type="date" value="2023-09-30">
+      <input type="date" value="2023-09-30" />
     </div>
     <div class="button-group">
       <button class="btn btn-clear">Limpar</button>
@@ -56,11 +66,11 @@
   font-size: 1rem;
   color: #333;
   font-weight: 500;
-  margin-bottom: 0
+  margin-bottom: 0;
 }
 
 .filter-group select,
-.filter-group input[type="date"] {
+.filter-group input[type='date'] {
   height: 2.5rem;
   padding: 0 0.75rem;
   border: 1px solid #e0e0e0;

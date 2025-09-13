@@ -39,16 +39,16 @@
       </div>
     </div>
 
-    <div class="charts-grid">
-      <div class="chart-card">
-        <h2>Chamados por Produto</h2>
-        <BarChart :chart-data="productChartData" />
-      </div>
-      <div class="chart-card">
-        <h2>Chamados ao Longo do Tempo</h2>
-        <LineChart :chart-data="timeChartData" />
-      </div>
-    </div>
+<!--    <div class="charts-grid">-->
+<!--      <div class="chart-card">-->
+<!--        <h2>Chamados por Produto</h2>-->
+<!--        <BarChart :chart-data="productChartData" />-->
+<!--      </div>-->
+<!--      <div class="chart-card">-->
+<!--        <h2>Chamados ao Longo do Tempo</h2>-->
+<!--        <LineChart :chart-data="timeChartData" />-->
+<!--      </div>-->
+<!--    </div>-->
   </div>
 </template>
 
