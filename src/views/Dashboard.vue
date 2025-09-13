@@ -18,31 +18,7 @@
       </nav>
     </header>
 
-    <div class="filters-bar">
-      <div class="filter-group">
-        <label>Produto</label>
-        <select>
-          <option>Todos</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label>Cliente</label>
-        <select>
-          <option>Todos</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label>De</label>
-        <input type="date" value="2023-01-01">
-      </div>
-      <div class="filter-group">
-        <label>Até</label>
-        <input type="date" value="2023-09-30">
-      </div>
-      <button class="btn btn-clear">Limpar</button>
-      <button class="btn btn-apply">Aplicar</button>
-      <button class="btn btn-export">Exportar</button>
-    </div>
+    <ChartDataFilter></ChartDataFilter>
 
     <div class="metrics-grid">
       <div class="metric-card">
@@ -80,6 +56,7 @@
 import { ref } from 'vue';
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement } from 'chart.js';
 import { Bar as BarChart, Line as LineChart } from 'vue-chartjs';
+import ChartDataFilter from '@/components/ChartDataFilter/ChartDataFilter.vue'
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement);
 
@@ -148,51 +125,6 @@ const timeChartData = ref({
   border-bottom: 2px solid #3b82f6;
 }
 
-.filters-bar {
-  background-color: #fff;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.filter-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.filter-group label {
-  font-size: 0.875rem;
-  color: #666;
-  margin-bottom: 0.25rem;
-}
-
-.btn {
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  border: 1px solid #ddd;
-}
-
-.btn-clear {
-  background-color: #f0f0f0;
-}
-
-.btn-apply {
-  background-color: #3b82f6;
-  color: #fff;
-  border-color: #3b82f6;
-}
-
-.btn-export {
-  background-color: #fff;
-  color: #333;
-  border-color: #ddd;
-  margin-left: auto;
-}
 
 .metrics-grid {
   display: grid;
