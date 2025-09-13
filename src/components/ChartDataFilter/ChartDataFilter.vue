@@ -99,7 +99,7 @@
 }
 
 .btn-apply {
-  background-color: #2c5282;
+  background-color: #0f172a;
   color: #ffffff;
   border: none;
 }
