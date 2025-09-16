@@ -1,31 +1,29 @@
-<script setup lang="ts">
-import SelectList from '@/components/SelectList.vue'
-import type { SelectListOption } from '@/components/types/SelectListOption.ts'
-import { type Ref, ref } from 'vue'
-
-const selectOptions: Ref<SelectListOption[]> = ref([
-  { label: 'Todos', value: 'all' },
-  { label: 'Nunes', value: '1' }
-])
-
-
-
-</script>
-
 <template>
   <div class="filters-bar">
     <div class="filter-group">
       <label>Produto</label>
-      <select>
-        <option>Todos</option>
-      </select>
+      <Select v-model="selectedProduct"
+              :options="clients" optionLabel="name" optionValue="code"
+              :panelStyle="{
+                backgroundColor: '#f8f9fa',
+                border: '1px solid #e0e0e0',
+                borderRadius: '6px'
+              }"
+      >
+      </Select>
     </div>
     <div class="filter-group">
       <label>Cliente</label>
-      <select>
-        <option>Todos</option>
-      </select>
-      <SelectList :options="selectOptions"/>
+
+      <Select v-model="selectedClient"
+              :options="clients" optionLabel="name" optionValue="code"
+              :panelStyle="{
+                backgroundColor: '#f8f9fa',
+                border: '1px solid #e0e0e0',
+                borderRadius: '6px'
+              }"
+      >
+      </Select>
     </div>
     <div class="filter-group">
       <label>De</label>
@@ -44,6 +42,27 @@ const selectOptions: Ref<SelectListOption[]> = ref([
     <button class="btn btn-export">Exportar</button>
   </div>
 </template>
+
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import Select from "primevue/select";
+
+
+const selectedClient = ref();
+const selectedProduct = ref();
+
+const clients = ref([
+  { name: 'New York', code: 'NY' },
+  { name: 'Rome', code: 'RM' },
+  { name: 'London', code: 'LDN' },
+  { name: 'Istanbul', code: 'IST' },
+  { name: 'Paris', code: 'PRS' }
+]);
+
+
+
+</script>
 
 <style scoped>
 .filters-bar {
@@ -69,9 +88,24 @@ const selectOptions: Ref<SelectListOption[]> = ref([
   margin-bottom: 0;
 }
 
-.filter-group select,
-.filter-group input[type='date'] {
+.filter-group :deep(.p-select) {
+  display: flex;
+  align-items: center;
   height: 2.5rem;
+  width: 8.5rem;
+  padding: 0 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background-color: #f8f9fa;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.filter-group input[type='date'] {
+  display: flex;
+  align-items: center;
+  height: 2.5rem;
+  width: 9.5rem;
   padding: 0 0.75rem;
   border: 1px solid #e0e0e0;
   border-radius: 6px;
