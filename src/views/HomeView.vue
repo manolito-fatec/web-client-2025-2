@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import Dashboard from "@/views/Dashboard.vue";
+import DashboardView from "@/views/DashboardView.vue";
 </script>
 
 <template>
   <main>
-    <Dashboard />
+    <DashboardView />
   </main>
 </template>
