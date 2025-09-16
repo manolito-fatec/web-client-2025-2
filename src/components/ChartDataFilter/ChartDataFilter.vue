@@ -14,9 +14,9 @@
     </div>
     <div class="filter-group">
       <label>Cliente</label>
-
       <Select v-model="selectedClient"
               :options="clients" optionLabel="name" optionValue="code"
+              @OnChange="updatedClient"
               :panelStyle="{
                 backgroundColor: '#f8f9fa',
                 border: '1px solid #e0e0e0',
@@ -45,14 +45,16 @@
 
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import {onMounted, ref} from 'vue'
 import Select from "primevue/select";
 
 
-const selectedClient = ref();
-const selectedProduct = ref();
+const selectedClient = ref("all");
+const selectedProduct = ref("all");
+
 
 const clients = ref([
+  { name: 'Todos', code: 'all' },
   { name: 'New York', code: 'NY' },
   { name: 'Rome', code: 'RM' },
   { name: 'London', code: 'LDN' },
@@ -60,7 +62,9 @@ const clients = ref([
   { name: 'Paris', code: 'PRS' }
 ]);
 
-
+function updatedClient(){
+  console.log(selectedClient.value);
+}
 
 </script>
 
