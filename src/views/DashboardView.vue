@@ -18,8 +18,7 @@
       </nav>
     </header>
 
-    <ChartDataFilter></ChartDataFilter>
-
+    <Select v-model="selectedClient" :options="clients"></Select>
     <div class="metrics-grid">
       <div class="metric-card">
         <p>Total de Chamados</p>
@@ -54,11 +53,21 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue';
+import Select from 'primevue/select';
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement } from 'chart.js';
 import { Bar as BarChart, Line as LineChart } from 'vue-chartjs';
-import ChartDataFilter from '@/components/ChartDataFilter/ChartDataFilter.vue'
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement);
+
+
+const selectedClient = ref();
+const clients = ref([
+  { name: 'New York', code: 'NY' },
+  { name: 'Rome', code: 'RM' },
+  { name: 'London', code: 'LDN' },
+  { name: 'Istanbul', code: 'IST' },
+  { name: 'Paris', code: 'PRS' }
+]);
 
 const productChartData = ref({
   labels: ['Quarmand', 'Guizo'],
