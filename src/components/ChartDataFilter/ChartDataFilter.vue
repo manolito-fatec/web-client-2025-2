@@ -5,7 +5,6 @@
       <Select v-model="selectedProduct"
               :options="clients" optionLabel="name" optionValue="code"
               :panelStyle="{
-                backgroundColor: '#f8f9fa',
                 border: '1px solid #e0e0e0',
                 borderRadius: '6px'
               }"
@@ -16,22 +15,39 @@
       <label>Cliente</label>
       <Select v-model="selectedClient"
               :options="clients" optionLabel="name" optionValue="code"
-              @OnChange="updatedClient"
               :panelStyle="{
-                backgroundColor: '#f8f9fa',
                 border: '1px solid #e0e0e0',
                 borderRadius: '6px'
               }"
+
       >
       </Select>
     </div>
     <div class="filter-group">
       <label>De</label>
-      <input type="date" value="2023-01-01" />
+      <DatePicker v-model="dateStart"
+                  showIcon
+                  dateFormat="dd/mm/yy"
+                  :maxDate="new Date()"
+                  :panelStyle="{
+                backgroundColor: '#f8f9fa',
+                border: '1px solid #e0e0e0',
+                borderRadius: '6px'
+              }"
+      />
     </div>
     <div class="filter-group">
       <label>Até</label>
-      <input type="date" value="2023-09-30" />
+      <DatePicker v-model="dateEnd"
+                  showIcon
+                  dateFormat="dd/mm/yy"
+                  :maxDate="new Date()"
+                  :panelStyle="{
+                backgroundColor: '#f8f9fa',
+                border: '1px solid #e0e0e0',
+                borderRadius: '6px'
+              }"
+      />
     </div>
     <div class="button-group">
       <button class="btn btn-clear">Limpar</button>
@@ -45,8 +61,16 @@
 
 
 <script setup lang="ts">
-import {onMounted, ref} from 'vue'
+import {ref} from 'vue'
 import Select from "primevue/select";
+import DatePicker from 'primevue/datepicker'
+
+const startDate = new Date();
+
+startDate.setMonth(startDate.getMonth() - 1);
+
+const dateStart = ref(startDate);
+const dateEnd = ref(new Date());
 
 
 const selectedClient = ref("all");
@@ -62,9 +86,6 @@ const clients = ref([
   { name: 'Paris', code: 'PRS' }
 ]);
 
-function updatedClient(){
-  console.log(selectedClient.value);
-}
 
 </script>
 
@@ -116,6 +137,13 @@ function updatedClient(){
   background-color: #f8f9fa;
   font-size: 0.9rem;
   color: #555;
+}
+
+.filter-group :deep(.p-datepicker) {
+  height: 2.5rem;
+  width: 10.5rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
 }
 
 .button-group {
