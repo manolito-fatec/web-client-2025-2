@@ -2,56 +2,63 @@
   <div class="filters-bar">
     <div class="filter-group">
       <label>Produto</label>
-      <Select v-model="selectedProduct"
-              :options="clients" optionLabel="name" optionValue="code"
-              :panelStyle="{
-                border: '1px solid #e0e0e0',
-                borderRadius: '6px'
-              }"
+      <Select
+        v-model="selectedProduct"
+        :options="clients"
+        optionLabel="name"
+        optionValue="code"
+        :panelStyle="{
+          border: '1px solid #e0e0e0',
+          borderRadius: '6px',
+        }"
       >
       </Select>
     </div>
     <div class="filter-group">
       <label>Cliente</label>
-      <Select v-model="selectedClient"
-              :options="clients" optionLabel="name" optionValue="code"
-              :panelStyle="{
-                border: '1px solid #e0e0e0',
-                borderRadius: '6px'
-              }"
-
+      <Select
+        v-model="selectedClient"
+        :options="clients"
+        optionLabel="name"
+        optionValue="code"
+        :panelStyle="{
+          border: '1px solid #e0e0e0',
+          borderRadius: '6px',
+        }"
       >
       </Select>
     </div>
     <div class="filter-group">
       <label>De</label>
-      <DatePicker v-model="dateStart"
-                  showIcon
-                  dateFormat="dd/mm/yy"
-                  :maxDate="new Date()"
-                  :panelStyle="{
-                backgroundColor: '#f8f9fa',
-                border: '1px solid #e0e0e0',
-                borderRadius: '6px'
-              }"
+      <DatePicker
+        v-model="dateStart"
+        showIcon
+        dateFormat="dd/mm/yy"
+        :maxDate="new Date()"
+        :panelStyle="{
+          backgroundColor: '#f8f9fa',
+          border: '1px solid #e0e0e0',
+          borderRadius: '6px',
+        }"
       />
     </div>
     <div class="filter-group">
       <label>Até</label>
-      <DatePicker v-model="dateEnd"
-                  showIcon
-                  dateFormat="dd/mm/yy"
-                  :maxDate="new Date()"
-                  :panelStyle="{
-                backgroundColor: '#f8f9fa',
-                border: '1px solid #e0e0e0',
-                borderRadius: '6px'
-              }"
+      <DatePicker
+        v-model="dateEnd"
+        showIcon
+        dateFormat="dd/mm/yy"
+        :maxDate="new Date()"
+        :panelStyle="{
+          backgroundColor: '#f8f9fa',
+          border: '1px solid #e0e0e0',
+          borderRadius: '6px',
+        }"
       />
     </div>
     <div class="button-group">
       <button class="btn btn-clear" @click="resetFilters">Limpar</button>
-      <button class="btn btn-apply">Aplicar</button>
+      <button class="btn btn-apply" @click="applyFilters">Aplicar</button>
     </div>
   </div>
   <div class="export-button-container">
@@ -59,32 +66,44 @@
   </div>
 </template>
 
-
 <script setup lang="ts">
-import {ref} from 'vue'
-import Select from "primevue/select";
+import { type Ref, ref } from 'vue'
+import Select from 'primevue/select'
 import DatePicker from 'primevue/datepicker'
+import type { FilterOptions } from '@/components/types/FilterOptions.ts'
 
-const startDate = new Date();
+const baseDate = new Date()
 
-startDate.setMonth(startDate.getMonth() - 1);
+baseDate.setMonth(baseDate.getMonth() - 1)
 
-const dateStart = ref(startDate);
-const dateEnd = ref(new Date());
+const dateStart = ref(baseDate)
+const dateEnd = ref(new Date())
 
-
-const selectedClient = ref("all");
-const selectedProduct = ref("all");
+const selectedClient = ref('all')
+const selectedProduct = ref('all')
 
 function subtractMonth(dateData: Date, numberOfMonths: number) {
-  return new Date(dateData.setMonth(dateData.getMonth() - numberOfMonths));
+  return new Date(dateData.setMonth(dateData.getMonth() - numberOfMonths))
 }
 
 const resetFilters = () => {
-  dateStart.value = subtractMonth(new Date(), 1);
-  dateEnd.value = new Date();
-  selectedClient.value = "all";
-  selectedProduct.value = "all";
+  dateStart.value = subtractMonth(new Date(), 1)
+  dateEnd.value = new Date()
+  selectedClient.value = 'all'
+  selectedProduct.value = 'all'
+}
+
+
+
+const applyFilters = () => {
+  const appliedFilters: Ref<FilterOptions> = ref<FilterOptions>({
+    productId: selectedProduct.value,
+    companyId: selectedClient.value,
+    startDate: dateStart.value.toLocaleDateString("pt-BR"),
+    endDate: dateEnd.value.toLocaleDateString("pt-BR")
+    });
+
+  console.log(appliedFilters.value);
 }
 
 const clients = ref([
@@ -93,10 +112,8 @@ const clients = ref([
   { name: 'Rome', code: 'RM' },
   { name: 'London', code: 'LDN' },
   { name: 'Istanbul', code: 'IST' },
-  { name: 'Paris', code: 'PRS' }
-]);
-
-
+  { name: 'Paris', code: 'PRS' },
+])
 </script>
 
 <style scoped>
