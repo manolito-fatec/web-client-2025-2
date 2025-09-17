@@ -50,7 +50,7 @@
       />
     </div>
     <div class="button-group">
-      <button class="btn btn-clear">Limpar</button>
+      <button class="btn btn-clear" @click="resetFilters">Limpar</button>
       <button class="btn btn-apply">Aplicar</button>
     </div>
   </div>
@@ -76,6 +76,16 @@ const dateEnd = ref(new Date());
 const selectedClient = ref("all");
 const selectedProduct = ref("all");
 
+function subtractMonth(dateData: Date, numberOfMonths: number) {
+  return new Date(dateData.setMonth(dateData.getMonth() - numberOfMonths));
+}
+
+const resetFilters = () => {
+  dateStart.value = subtractMonth(new Date(), 1);
+  dateEnd.value = new Date();
+  selectedClient.value = "all";
+  selectedProduct.value = "all";
+}
 
 const clients = ref([
   { name: 'Todos', code: 'all' },
@@ -117,7 +127,7 @@ const clients = ref([
   display: flex;
   align-items: center;
   height: 2.5rem;
-  width: 8.5rem;
+  width: 10.5rem;
   padding: 0 0.75rem;
   border: 1px solid #e0e0e0;
   border-radius: 6px;
