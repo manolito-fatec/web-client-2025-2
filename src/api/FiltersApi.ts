@@ -1,0 +1,54 @@
+import axios from 'axios';
+import type { Product } from '@/components/types/Product.ts'
+import type { Company } from '@/components/types/Company.ts'
+import type { ApiResponse } from '@/components/types/PaginatedInterfaces/ApiResponse.ts'
+
+const BASE_URL = 'http://localhost:8080/';
+
+
+/**
+ * Fetch all companies and products
+ * @param pageSize - Number of itens per page.
+ * @returns an object that has the arrays of all products and all companies.
+ */
+export async function fetchFilterOptions(pageSize: number = 10): Promise<{ allProducts: Product[], allCompanies: Company[] }> {
+  const url = BASE_URL + 'filters';
+
+  const allProducts: Product[] = [];
+  const allCompanies: Company[] = [];
+
+  let currentPage = 1;
+  let hasMorePages = true;
+
+  while (hasMorePages) {
+    try {
+      const response = await axios.get<ApiResponse>(url, {
+        params: {
+          page: currentPage,
+          size: pageSize
+        }
+      });
+
+      const { products, companies } = response.data;
+
+      if (products.content.length > 0) {
+        allProducts.push(...products.content);
+      }
+      if (companies.content.length > 0) {
+        allCompanies.push(...companies.content);
+      }
+
+      if (products.last && companies.last) {
+        hasMorePages = false;
+      } else {
+        currentPage++;
+      }
+
+    } catch (error) {
+      hasMorePages = false;
+      throw error;
+    }
+  }
+
+  return { allProducts, allCompanies };
+}
