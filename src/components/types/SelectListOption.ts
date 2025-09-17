@@ -1,4 +1,4 @@
 export type SelectListOption = {
-  label: string;
-  value: string;
+  name: string;
+  code: int;
 }

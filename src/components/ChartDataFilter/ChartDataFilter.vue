@@ -4,7 +4,7 @@
       <label>Produto</label>
       <Select
         v-model="selectedProduct"
-        :options="clients"
+        :options="products"
         optionLabel="name"
         optionValue="code"
         :panelStyle="{
@@ -67,10 +67,12 @@
 </template>
 
 <script setup lang="ts">
-import { type Ref, ref } from 'vue'
+import { onMounted, type Ref, ref } from 'vue'
 import Select from 'primevue/select'
 import DatePicker from 'primevue/datepicker'
 import type { FilterOptions } from '@/components/types/FilterOptions.ts'
+import { fetchFilterOptions } from '@/api/FiltersApi.ts'
+import type { SelectListOption } from '@/components/types/SelectListOption.ts'
 
 const baseDate = new Date()
 
@@ -93,27 +95,47 @@ const resetFilters = () => {
   selectedProduct.value = 'all'
 }
 
-
-
 const applyFilters = () => {
   const appliedFilters: Ref<FilterOptions> = ref<FilterOptions>({
     productId: selectedProduct.value,
     companyId: selectedClient.value,
-    startDate: dateStart.value.toLocaleDateString("pt-BR"),
-    endDate: dateEnd.value.toLocaleDateString("pt-BR")
-    });
+    startDate: dateStart.value.toLocaleDateString('pt-BR'),
+    endDate: dateEnd.value.toLocaleDateString('pt-BR'),
+  })
 
-  console.log(appliedFilters.value);
+  console.log(appliedFilters.value)
 }
 
-const clients = ref([
-  { name: 'Todos', code: 'all' },
-  { name: 'New York', code: 'NY' },
-  { name: 'Rome', code: 'RM' },
-  { name: 'London', code: 'LDN' },
-  { name: 'Istanbul', code: 'IST' },
-  { name: 'Paris', code: 'PRS' },
-])
+const clients:Ref<SelectListOption[]> = ref<SelectListOption[]>([{
+  name: "Todas", code: "all"
+}]);
+
+const products:Ref<SelectListOption[]> = ref<SelectListOption[]>([{
+  name: "Todas", code: "all"
+}]);
+
+onMounted(() => {
+  fetchFilterOptions(3)
+    .then((resultado) => {
+      for (let i = 0; i < resultado.allCompanies.length; i++) {
+        const selectListOption: Ref<SelectListOption> = ref<SelectListOption>({
+          name: resultado.allCompanies[i].name,
+          code: resultado.allCompanies[i].id
+        })
+        clients.value.push(selectListOption.value)
+      }
+      for (let i = 0; i < resultado.allProducts.length; i++) {
+        const selectListOption: Ref<SelectListOption> = ref<SelectListOption>({
+          name: resultado.allProducts[i].name,
+          code: resultado.allProducts[i].id
+        })
+        products.value.push(selectListOption.value)
+      }
+    })
+    .catch((error) => {
+      console.error('A busca geral falhou:', error.message)
+    })
+})
 </script>
 
 <style scoped>
@@ -144,7 +166,7 @@ const clients = ref([
   display: flex;
   align-items: center;
   height: 2.5rem;
-  width: 10.5rem;
+  width: 30.5rem;
   padding: 0 0.75rem;
   border: 1px solid #e0e0e0;
   border-radius: 6px;
