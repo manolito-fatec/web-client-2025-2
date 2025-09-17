@@ -53,7 +53,6 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue';
-import Select from 'primevue/select';
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement } from 'chart.js';
 import { Bar as BarChart, Line as LineChart } from 'vue-chartjs';
 import ChartDataFilter from "@/components/ChartDataFilter/ChartDataFilter.vue";
