@@ -103,8 +103,6 @@ const applyFilters = () => {
     startDate: dateStart.value.toLocaleDateString('pt-BR'),
     endDate: dateEnd.value.toLocaleDateString('pt-BR'),
   })
-
-  console.log(appliedFilters.value)
 }
 
 const clients:Ref<SelectListOption[]> = ref<SelectListOption[]>([{

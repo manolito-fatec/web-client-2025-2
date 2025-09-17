@@ -7,10 +7,9 @@ const BASE_URL = 'http://localhost:8080/';
 
 
 /**
- * Busca TODOS os produtos e empresas de uma API paginada,
- * fazendo chamadas sequenciais até a última página.
- * @param pageSize - O número de itens a buscar por chamada (página).
- * @returns Um objeto contendo duas listas: uma com todos os produtos e outra com todas as empresas.
+ * Fetch all companies and products
+ * @param pageSize - Number of itens per page.
+ * @returns an object that has the arrays of all products and all companies.
  */
 export async function fetchFilterOptions(pageSize: number = 10): Promise<{ allProducts: Product[], allCompanies: Company[] }> {
   const url = BASE_URL + 'filters';
@@ -21,11 +20,8 @@ export async function fetchFilterOptions(pageSize: number = 10): Promise<{ allPr
   let currentPage = 1;
   let hasMorePages = true;
 
-  console.log(`Iniciando busca de todos os dados com ${pageSize} itens por página.`);
-
   while (hasMorePages) {
     try {
-      console.log(`Buscando página: ${currentPage}...`);
       const response = await axios.get<ApiResponse>(url, {
         params: {
           page: currentPage,
@@ -44,13 +40,11 @@ export async function fetchFilterOptions(pageSize: number = 10): Promise<{ allPr
 
       if (products.last && companies.last) {
         hasMorePages = false;
-        console.log("Busca finalizada. Última página atingida.");
       } else {
         currentPage++;
       }
 
     } catch (error) {
-      console.error(`Erro ao buscar a página ${currentPage}:`, error);
       hasMorePages = false;
       throw error;
     }
