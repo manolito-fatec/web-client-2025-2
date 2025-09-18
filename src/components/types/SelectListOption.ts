@@ -1,4 +1,4 @@
 export type SelectListOption = {
   name: string;
-  code: Number;
+  code: String;
 }
