@@ -1,0 +1,17 @@
+.metric-card {
+  background-color: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.metric-card p {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0;
+}
+
+.metric-card span {
+  font-size: 2.5rem;
+  font-weight: bold;
+}

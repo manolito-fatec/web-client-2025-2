@@ -20,10 +20,8 @@
 
     <ChartDataFilter></ChartDataFilter>
     <div class="metrics-grid">
-      <div class="metric-card">
-        <p>Total de Chamados</p>
-        <span>6</span>
-      </div>
+      <DataCard title="Total de Chamados" :value="totalOfTickets"></DataCard>
+
       <div class="metric-card">
         <p>Tempo Médio de Resolução</p>
         <span>3,2 dias</span>
@@ -52,35 +50,59 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
-import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement } from 'chart.js';
-import { Bar as BarChart, Line as LineChart } from 'vue-chartjs';
-import ChartDataFilter from "@/components/ChartDataFilter/ChartDataFilter.vue";
+import { type Ref, ref } from 'vue'
+import {
+  Chart as ChartJS,
+  Title,
+  Tooltip,
+  Legend,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  LineElement,
+  PointElement,
+} from 'chart.js'
+import { Bar as BarChart, Line as LineChart } from 'vue-chartjs'
+import ChartDataFilter from '@/components/ChartDataFilter/ChartDataFilter.vue'
+import DataCard from '@/components/DataCard/DataCard.vue'
 
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement);
+ChartJS.register(
+  Title,
+  Tooltip,
+  Legend,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  LineElement,
+  PointElement,
+)
 
-
+const totalOfTickets: Ref<number> = ref<number>(0)
 
 const productChartData = ref({
   labels: ['Quarmand', 'Guizo'],
-  datasets: [{
-    label: 'Chamados',
-    backgroundColor: '#000000',
-    data: [4, 2]
-  }]
-});
+  datasets: [
+    {
+      label: 'Chamados',
+      backgroundColor: '#000000',
+      data: [4, 2],
+    },
+  ],
+})
 
 const timeChartData = ref({
   labels: ['2025-08', '2025-09'],
-  datasets: [{
-    label: 'Chamados',
-    backgroundColor: '#3b82f6',
-    borderColor: '#3b82f6',
-    data: [5, 1],
-    fill: false,
-    tension: 0.4
-  }]
-});
+  datasets: [
+    {
+      label: 'Chamados',
+      backgroundColor: '#3b82f6',
+      borderColor: '#3b82f6',
+      data: [5, 1],
+      fill: false,
+      tension: 0.4,
+    },
+  ],
+})
 </script>
 
 <style scoped>
@@ -95,7 +117,7 @@ const timeChartData = ref({
   background-color: #fff;
   padding: 1.5rem;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
 }
 
@@ -126,7 +148,6 @@ const timeChartData = ref({
   border-bottom: 2px solid #3b82f6;
 }
 
-
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -138,7 +159,7 @@ const timeChartData = ref({
   background-color: #fff;
   padding: 1.5rem;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .metric-card p {
@@ -162,7 +183,6 @@ const timeChartData = ref({
   background-color: #fff;
   padding: 1.5rem;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 </style>
-
