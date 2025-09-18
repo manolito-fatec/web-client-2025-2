@@ -22,7 +22,7 @@
     <div class="metrics-grid">
       <Cards title="Total de Chamados" value="6"></Cards>
       <Cards title="Tempo Médio de Resolução" value="3,2 dias"></Cards>
-      <Cards title="% Reincidência" value="12%"></Cards>
+      <Cards title="% Reincidência" :value="reOpenedValue"></Cards>
       <Cards title="SLA Cumprido" value="92%"></Cards>
     </div>
 
@@ -40,15 +40,16 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
-import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement } from 'chart.js';
+import { onMounted, ref, type Ref } from 'vue';
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement, type ChartData } from 'chart.js';
 import { Bar as BarChart, Line as LineChart } from 'vue-chartjs';
 import ChartDataFilter from "@/components/chartDataFilter/ChartDataFilter.vue";
 import Cards from "@/components/ticketsCard/Cards.vue";
+import { getChartDate } from '@/api/ChartDataApi';
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement);
 
-
+const reOpenedValue: Ref<String> = ref<String>("0%");
 
 const productChartData = ref({
   labels: ['Quarmand', 'Guizo'],
@@ -70,6 +71,17 @@ const timeChartData = ref({
     tension: 0.4
   }]
 });
+
+onMounted(()=>{
+   try {
+    getChartDate("", "", "", "").then((response) => {
+      reOpenedValue.value = `${response.recidivismRate.toPrecision(2)}%`
+    });
+  } catch (error) {
+    console.error("Error fetching chart information", error);
+  }
+})
+
 </script>
 
 <style scoped>

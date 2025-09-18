@@ -1,27 +1,19 @@
 <script setup lang="ts">
-import { onMounted, ref, type Ref } from 'vue';
 
 const props = defineProps<{
 title: String;
 value: String;
 }>();
 
-const titleRef: Ref<String> = ref<String>("");
-const valueRef: Ref<String> = ref<String>("");
-
-onMounted(() => {
-titleRef.value = props.title;
-valueRef.value = props.value;
-
-});
 </script>
 <template>
     <div class="metric-card">
-        <h3>{{ titleRef }}</h3>
-        <span>{{ valueRef}}</span>
+        <h3>{{ props.title }}</h3>
+        <span>{{ props.value}}</span>
     </div>
 </template>
 <style scoped>
+
 .metric-card {
   background-color: #fff;
   padding: 1.5rem;
@@ -39,4 +31,5 @@ valueRef.value = props.value;
   font-size: 2.5rem;
   font-weight: bold;
 }
+
 </style>
