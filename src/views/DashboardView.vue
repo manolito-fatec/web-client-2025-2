@@ -20,25 +20,13 @@
 
     <ChartDataFilter></ChartDataFilter>
     <div class="metrics-grid">
-      <div class="metric-card">
-        <p>Total de Chamados</p>
-        <span>6</span>
-      </div>
-      <div class="metric-card">
-        <p>Tempo Médio de Resolução</p>
-        <span>3,2 dias</span>
-      </div>
-      <div class="metric-card">
-        <p>% Reincidência</p>
-        <span>12%</span>
-      </div>
-      <div class="metric-card">
-        <p>SLA Cumprido</p>
-        <span>92%</span>
-      </div>
+      <Cards title="Total de Chamados" value="6"></Cards>
+      <Cards title="Tempo Médio de Resolução" value="3,2 dias"></Cards>
+      <Cards title="% Reincidência" :value="reOpenedValue"></Cards>
+      <Cards title="SLA Cumprido" value="92%"></Cards>
     </div>
 
-<!--    <div class="charts-grid">-->
+   <!-- <div class="charts-grid">-->
 <!--      <div class="chart-card">-->
 <!--        <h2>Chamados por Produto</h2>-->
 <!--        <BarChart :chart-data="productChartData" />-->
@@ -47,19 +35,21 @@
 <!--        <h2>Chamados ao Longo do Tempo</h2>-->
 <!--        <LineChart :chart-data="timeChartData" />-->
 <!--      </div>-->
-<!--    </div>-->
+<!--    </div> -->
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
-import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement } from 'chart.js';
+import { onMounted, ref, type Ref } from 'vue';
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement, type ChartData } from 'chart.js';
 import { Bar as BarChart, Line as LineChart } from 'vue-chartjs';
-import ChartDataFilter from "@/components/ChartDataFilter/ChartDataFilter.vue";
+import ChartDataFilter from "@/components/chartDataFilter/ChartDataFilter.vue";
+import Cards from "@/components/ticketsCard/Cards.vue";
+import { getChartDate } from '@/api/ChartDataApi';
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement);
 
-
+const reOpenedValue: Ref<String> = ref<String>("0%");
 
 const productChartData = ref({
   labels: ['Quarmand', 'Guizo'],
@@ -81,6 +71,17 @@ const timeChartData = ref({
     tension: 0.4
   }]
 });
+
+onMounted(()=>{
+   try {
+    getChartDate("", "", "", "").then((response) => {
+      reOpenedValue.value = `${response.recidivismRate.toPrecision(2)}%`
+    });
+  } catch (error) {
+    console.error("Error fetching chart information", error);
+  }
+})
+
 </script>
 
 <style scoped>
@@ -132,24 +133,6 @@ const timeChartData = ref({
   grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
   margin-bottom: 2rem;
-}
-
-.metric-card {
-  background-color: #fff;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.metric-card p {
-  font-size: 0.875rem;
-  color: #666;
-  margin: 0;
-}
-
-.metric-card span {
-  font-size: 2.5rem;
-  font-weight: bold;
 }
 
 .charts-grid {
