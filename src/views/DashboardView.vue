@@ -18,7 +18,9 @@
       </nav>
     </header>
 
-    <ChartDataFilter></ChartDataFilter>
+    <ChartDataFilter
+      @applyFilters="applyFilters"
+    ></ChartDataFilter>
     <div class="metrics-grid">
       <Cards title="Total de Chamados" value="6"></Cards>
       <Cards title="Tempo Médio de Resolução" value="3,2 dias"></Cards>
@@ -26,16 +28,16 @@
       <Cards title="SLA Cumprido" value="92%"></Cards>
     </div>
 
-   <!-- <div class="charts-grid">-->
-<!--      <div class="chart-card">-->
-<!--        <h2>Chamados por Produto</h2>-->
-<!--        <BarChart :chart-data="productChartData" />-->
-<!--      </div>-->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h2>Chamados por Produto</h2>
+        <BarChart :data="productChartData" />
+      </div>
 <!--      <div class="chart-card">-->
 <!--        <h2>Chamados ao Longo do Tempo</h2>-->
 <!--        <LineChart :chart-data="timeChartData" />-->
 <!--      </div>-->
-<!--    </div> -->
+    </div>
   </div>
 </template>
 
@@ -46,10 +48,17 @@ import { Bar as BarChart, Line as LineChart } from 'vue-chartjs';
 import ChartDataFilter from "@/components/chartDataFilter/ChartDataFilter.vue";
 import Cards from "@/components/ticketsCard/Cards.vue";
 import { getChartDate } from '@/api/ChartDataApi';
+import type {FilterOptions} from "@/components/types/FilterOptions.ts";
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement);
 
 const reOpenedValue: Ref<String> = ref<String>("0%");
+
+function applyFilters(data:FilterOptions){
+  getChartDate(data.productId, data.companyId, data.startDate, data.endDate).then( (response) => {
+    console.log(response);
+  })
+}
 
 const productChartData = ref({
   labels: ['Quarmand', 'Guizo'],

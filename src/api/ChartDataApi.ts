@@ -3,7 +3,7 @@ import axios from "axios";
 
 const BASE_URL = 'http://localhost:8080/api/metrics/chart';
 
-export async function getChartDate(pProductId:String, pCustomerId:String, pFromDate:String, pToDate:String)
+export async function getChartDate(pProductId:string, pCustomerId:string, pFromDate:string, pToDate:string)
 {
     try
     {

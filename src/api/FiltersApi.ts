@@ -12,7 +12,7 @@ const BASE_URL = 'http://localhost:8080/';
  * @returns an object that has the arrays of all products and all companies.
  */
 export async function fetchFilterOptions(pageSize: number = 10): Promise<{ allProducts: Product[], allCompanies: Company[] }> {
-  const url = BASE_URL + 'filters';
+  const url = BASE_URL + 'api/metrics';
 
   const allProducts: Product[] = [];
   const allCompanies: Company[] = [];

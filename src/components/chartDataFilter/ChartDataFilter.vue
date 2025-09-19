@@ -103,7 +103,11 @@ const applyFilters = () => {
     startDate: dateStart.value.toLocaleDateString('pt-BR'),
     endDate: dateEnd.value.toLocaleDateString('pt-BR'),
   })
+  emit('applyFilters', appliedFilters.value)
 }
+
+const emit = defineEmits(['applyFilters'])
+
 
 const clients:Ref<SelectListOption[]> = ref<SelectListOption[]>([{
   name: "Todas", code: "all"
