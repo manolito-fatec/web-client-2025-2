@@ -92,16 +92,16 @@ function subtractMonth(dateData: Date, numberOfMonths: number) {
 const resetFilters = () => {
   dateStart.value = subtractMonth(new Date(), 1)
   dateEnd.value = new Date()
-  selectedClient.value = 'all'
-  selectedProduct.value = 'all'
+  selectedClient.value = ''
+  selectedProduct.value = ''
 }
 
 const applyFilters = () => {
   const appliedFilters: Ref<FilterOptions> = ref<FilterOptions>({
-    productId: selectedProduct.value,
-    companyId: selectedClient.value,
-    startDate: dateStart.value.toLocaleDateString('pt-BR'),
-    endDate: dateEnd.value.toLocaleDateString('pt-BR'),
+    productId: selectedProduct.value == 'all' ? '' : selectedProduct.value,
+    companyId: selectedClient.value == 'all' ? '' : selectedProduct.value,
+    startDate: dateStart.value.toISOString(),
+    endDate: dateEnd.value.toISOString(),
   })
   emit('applyFilters', appliedFilters.value)
 }
