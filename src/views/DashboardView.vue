@@ -78,7 +78,7 @@ function applyFilters(data: FilterOptions) {
 const averageTimeValue: Ref<string> = ref<string>("0 Horas")
 const totalOfTicketsValue: Ref<string> = ref<string>("0")
 
-const productChartData: Ref<ChartData> = ref({
+const productChartData: Ref<ChartData<'bar', number[], string>> = ref({
   labels: [],
   datasets: [{
     label: 'Chamados',
