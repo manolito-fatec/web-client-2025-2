@@ -31,7 +31,13 @@
     <div class="charts-grid">
       <div class="chart-card">
         <h2>Chamados por Produto</h2>
-        <BarChart :data="productChartData" />
+
+        <div v-if="loading" class="loading-container">
+          <div class="spinner"></div>
+          <span>Carregando dados...</span>
+        </div>
+
+        <BarChart v-else :data="productChartData" />
       </div>
 <!--      <div class="chart-card">-->
 <!--        <h2>Chamados ao Longo do Tempo</h2>-->
@@ -44,28 +50,38 @@
 <script lang="ts" setup>
 import { onMounted, ref, type Ref } from 'vue';
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement, type ChartData } from 'chart.js';
-import { Bar as BarChart, Line as LineChart } from 'vue-chartjs';
+import { Bar as BarChart} from 'vue-chartjs';
 import ChartDataFilter from "@/components/chartDataFilter/ChartDataFilter.vue";
 import Cards from "@/components/ticketsCard/Cards.vue";
 import { getChartDate } from '@/api/ChartDataApi';
 import type {FilterOptions} from "@/components/types/FilterOptions.ts";
+import { transformTicketsByProductData } from '@/components/ChartService.ts'
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement);
 
 const reOpenedValue: Ref<string> = ref<string>("0%");
 
-function applyFilters(data:FilterOptions){
-  getChartDate(data.productId, data.companyId, data.startDate, data.endDate).then( (response) => {
-    console.log(response);
-  })
+const loading = ref(true);
+
+function applyFilters(data: FilterOptions) {
+  loading.value = true;
+  getChartDate(data.productId, data.companyId, data.startDate, data.endDate)
+    .then((response) => {
+      productChartData.value = transformTicketsByProductData(response);
+      loading.value = false;
+    })
+    .catch(error => {
+      console.error("Erro ao buscar dados do gráfico:", error);
+    });
 }
 
-const productChartData = ref({
-  labels: ['Quarmand', 'Guizo'],
+
+const productChartData: Ref<ChartData> = ref({
+  labels: [],
   datasets: [{
     label: 'Chamados',
     backgroundColor: '#000000',
-    data: [4, 2]
+    data: []
   }]
 });
 
@@ -155,6 +171,28 @@ onMounted(()=>{
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  gap: 0.5rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e0e0e0;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 </style>
 
