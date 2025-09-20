@@ -21,7 +21,7 @@
     <ChartDataFilter></ChartDataFilter>
     <div class="metrics-grid">
       <Cards title="Total de Chamados" value="6"></Cards>
-      <Cards title="Tempo Médio de Resolução" value="3,2 dias"></Cards>
+      <Cards title="Tempo Médio de Resolução" :value=averageTimeValue></Cards>
       <Cards title="% Reincidência" :value="reOpenedValue"></Cards>
       <Cards title="SLA Cumprido" value="92%"></Cards>
     </div>
@@ -49,7 +49,8 @@ import { getChartDate } from '@/api/ChartDataApi';
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement);
 
-const reOpenedValue: Ref<String> = ref<String>("0%");
+const reOpenedValue: Ref<string> = ref<string>("0%");
+const averageTimeValue: Ref<string> = ref<string>("0 Horas")
 
 const productChartData = ref({
   labels: ['Quarmand', 'Guizo'],
@@ -76,6 +77,7 @@ onMounted(()=>{
    try {
     getChartDate("", "", "", "").then((response) => {
       reOpenedValue.value = `${response.recidivismRate.toPrecision(2)}%`
+      averageTimeValue.value = `${response.ticketClosureTimeInHours.toPrecision(4)} Horas`
     });
   } catch (error) {
     console.error("Error fetching chart information", error);
