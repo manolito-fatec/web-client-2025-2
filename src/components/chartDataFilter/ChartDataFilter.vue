@@ -92,8 +92,9 @@ function subtractMonth(dateData: Date, numberOfMonths: number) {
 const resetFilters = () => {
   dateStart.value = subtractMonth(new Date(), 1)
   dateEnd.value = new Date()
-  selectedClient.value = ''
-  selectedProduct.value = ''
+  selectedClient.value = 'all'
+  selectedProduct.value = 'all'
+  applyFilters();
 }
 
 const applyFilters = () => {
@@ -106,15 +107,15 @@ const applyFilters = () => {
   emit('applyFilters', appliedFilters.value)
 }
 
-const emit = defineEmits(['applyFilters'])
+const emit = defineEmits(['applyFilters','resetFilters'])
 
 
 const clients:Ref<SelectListOption[]> = ref<SelectListOption[]>([{
-  name: "Todas", code: "all"
+  name: "Todas", code: 'all'
 }]);
 
 const products:Ref<SelectListOption[]> = ref<SelectListOption[]>([{
-  name: "Todas", code: "all"
+  name: "Todas", code: 'all'
 }]);
 
 onMounted(() => {
@@ -123,17 +124,18 @@ onMounted(() => {
       for (let i = 0; i < resultado.allCompanies.length; i++) {
         const selectListOption: Ref<SelectListOption> = ref<SelectListOption>({
           name: resultado.allCompanies[i].name,
-          code: resultado.allCompanies[i].id
+          code: resultado.allCompanies[i].id.toString()
         })
         clients.value.push(selectListOption.value)
       }
       for (let i = 0; i < resultado.allProducts.length; i++) {
         const selectListOption: Ref<SelectListOption> = ref<SelectListOption>({
           name: resultado.allProducts[i].name,
-          code: resultado.allProducts[i].id
+          code: resultado.allProducts[i].id.toString()
         })
         products.value.push(selectListOption.value)
       }
+      applyFilters();
     })
     .catch((error) => {
       console.error('A busca geral falhou:', error.message)
