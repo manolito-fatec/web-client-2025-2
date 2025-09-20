@@ -1,3 +1,4 @@
 export interface ChartDate {
-  recidivismRate: Number;
+  recidivismRate: number;
+  ticketClosureTimeInHours: number;
 }
