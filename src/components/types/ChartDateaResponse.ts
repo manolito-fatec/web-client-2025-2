@@ -3,4 +3,6 @@ import type { TicketsByProduct } from '@/components/types/ChartTypes/TicketsByPr
 export interface ChartDate {
   recidivismRate: number;
   ticketsCountGroupedByProduct : TicketsByProduct[];
+  ticketClosureTimeInHours: number;
+  ticketsCount:number;
 }

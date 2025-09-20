@@ -22,8 +22,8 @@
       @applyFilters="applyFilters"
     ></ChartDataFilter>
     <div class="metrics-grid">
-      <Cards title="Total de Chamados" value="6"></Cards>
-      <Cards title="Tempo Médio de Resolução" value="3,2 dias"></Cards>
+      <Cards title="Total de Chamados" :value=totalOfTicketsValue></Cards>
+      <Cards title="Tempo Médio de Resolução" :value=averageTimeValue></Cards>
       <Cards title="% Reincidência" :value="reOpenedValue"></Cards>
       <Cards title="SLA Cumprido" value="92%"></Cards>
     </div>
@@ -75,6 +75,8 @@ function applyFilters(data: FilterOptions) {
     });
 }
 
+const averageTimeValue: Ref<string> = ref<string>("0 Horas")
+const totalOfTicketsValue: Ref<string> = ref<string>("0")
 
 const productChartData: Ref<ChartData> = ref({
   labels: [],
@@ -101,6 +103,8 @@ onMounted(()=>{
    try {
     getChartDate("", "", "", "").then((response) => {
       reOpenedValue.value = `${response.recidivismRate.toPrecision(2)}%`
+      averageTimeValue.value = `${response.ticketClosureTimeInHours.toPrecision(4)} Horas`
+      totalOfTicketsValue.value = `${response.ticketsCount}`
     });
   } catch (error) {
     console.error("Error fetching chart information", error);
