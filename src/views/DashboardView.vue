@@ -52,7 +52,7 @@ import type {FilterOptions} from "@/components/types/FilterOptions.ts";
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement);
 
-const reOpenedValue: Ref<String> = ref<String>("0%");
+const reOpenedValue: Ref<string> = ref<string>("0%");
 
 function applyFilters(data:FilterOptions){
   getChartDate(data.productId, data.companyId, data.startDate, data.endDate).then( (response) => {
