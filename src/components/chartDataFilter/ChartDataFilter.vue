@@ -138,7 +138,7 @@ onMounted(() => {
       applyFilters();
     })
     .catch((error) => {
-      console.error('A busca geral falhou:', error.message)
+      console.error('Error fetching filter information:', error.message)
     })
 })
 </script>

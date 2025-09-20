@@ -71,7 +71,7 @@ function applyFilters(data: FilterOptions) {
       loading.value = false;
     })
     .catch(error => {
-      console.error("Erro ao buscar dados do gráfico:", error);
+      console.error("Error fetching chart information:", error);
     });
 }
 
