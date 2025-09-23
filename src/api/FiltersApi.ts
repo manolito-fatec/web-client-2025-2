@@ -1,7 +1,7 @@
 import axios from 'axios';
-import type { Product } from '@/components/types/Product.ts'
-import type { Company } from '@/components/types/Company.ts'
-import type { ApiResponse } from '@/components/types/PaginatedInterfaces/ApiResponse.ts'
+import type { Product } from '@/types/Product'
+import type { Company } from '@/types/Company'
+import type { ApiResponse } from '@/types/PaginatedInterfaces/ApiResponse'
 
 const BASE_URL = 'http://localhost:8080/';
 
