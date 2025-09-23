@@ -6,3 +6,13 @@ export interface Product {
   isActive: boolean;
   createdAt: string;
 }
+
+interface TicketCountGroupedByProduct {
+  productId: number;
+  productName: string;
+  totalTickets: number;
+}
+
+export interface TicketsResponse {
+  ticketsCountGroupedByProduct: TicketCountGroupedByProduct[];
+}

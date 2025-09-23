@@ -17,7 +17,9 @@
         <button class="nav-item">Admin</button>
       </nav>
     </header>
-    <ChartDataFilter></ChartDataFilter>
+    <ChartDataFilter
+      @applyFilters="applyFilters"
+    ></ChartDataFilter>
     <LoadingComponent v-if="loadingValue"></LoadingComponent>
     <div v-if="!loadingValue">
       <div class="metrics-grid">
@@ -26,44 +28,63 @@
         <Cards title="% Reincidência" :value="reOpenedValue"></Cards>
         <Cards title="SLA Cumprido" :value=slaCompliancePercentualValue></Cards>
       </div>
-    </div>  
-
-   <!-- <div class="charts-grid">-->
-<!--      <div class="chart-card">-->
-<!--        <h2>Chamados por Produto</h2>-->
-<!--        <BarChart :chart-data="productChartData" />-->
-<!--      </div>-->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h2>Chamados por Produto</h2>
+          <BarChart :data="productChartData" />
+        </div>
+      </div>  
+    </div>
 <!--      <div class="chart-card">-->
 <!--        <h2>Chamados ao Longo do Tempo</h2>-->
 <!--        <LineChart :chart-data="timeChartData" />-->
 <!--      </div>-->
-<!--    </div> -->
   </div>
 </template>
 
 <script lang="ts" setup>
 import { onMounted, ref, type Ref } from 'vue';
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement, type ChartData } from 'chart.js';
-import { Bar as BarChart, Line as LineChart } from 'vue-chartjs';
+import { Bar as BarChart} from 'vue-chartjs';
 import ChartDataFilter from "@/components/chartDataFilter/ChartDataFilter.vue";
 import Cards from "@/components/ticketsCard/Cards.vue";
 import { getChartDate } from '@/api/ChartDataApi';
 import LoadingComponent from '@/components/LoadingComponent.vue';
+import type {FilterOptions} from "@/types/FilterOptions.ts";
+import { transformTicketsByProductData } from '@/components/ChartService.ts'
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement);
 
-const reOpenedValue: Ref<string> = ref<string>("0%");
+
+
+const applyFilters = async (data: FilterOptions) => {
+  loadingValue.value = true;
+  try {
+    const response = await getChartDate(data);
+    reOpenedValue.value = `${response.recidivismRate.toPrecision(2)}%`;
+    averageTimeValue.value = `${response.ticketClosureTimeInHours.toPrecision(4)} Horas`;
+    totalOfTicketsValue.value = `${response.ticketsCount}`;
+    slaCompliancePercentualValue.value = `${response.slaCompliancePercentualDto.toPrecision(2)}%`;
+    productChartData.value = transformTicketsByProductData(response);
+  } catch (error) {
+    console.error("Error fetching chart information", error);
+  } finally {
+    loadingValue.value = false;
+  }
+};
+
 const averageTimeValue: Ref<string> = ref<string>("0 Horas")
 const totalOfTicketsValue: Ref<string> = ref<string>("0")
 const slaCompliancePercentualValue: Ref<string> = ref<string>("0%")
 const loadingValue: Ref<boolean> = ref<boolean>(false)
+const reOpenedValue: Ref<string> = ref<string>("0%");  
 
-const productChartData = ref({
-  labels: ['Quarmand', 'Guizo'],
+const productChartData: Ref<ChartData<'bar', number[], string>> = ref({
+  labels: [],
   datasets: [{
     label: 'Chamados',
     backgroundColor: '#000000',
-    data: [4, 2]
+    data: []
   }]
 });
 
@@ -80,18 +101,13 @@ const timeChartData = ref({
 });
 
 onMounted(async () => {
-  loadingValue.value = true
-  try {
-    const response = await getChartDate("", "", "", "")
-    reOpenedValue.value = `${response.recidivismRate.toPrecision(2)}%`
-    averageTimeValue.value = `${response.ticketClosureTimeInHours.toPrecision(4)} Horas`
-    totalOfTicketsValue.value = `${response.ticketsCount}`
-    slaCompliancePercentualValue.value = `${response.slaCompliancePercentualDto.toPrecision(2)}%`
-  } catch (error) {
-    console.error("Error fetching chart information", error)
-  } finally {
-    loadingValue.value = false
-  }
+  const filters: FilterOptions = {
+  productId: "",
+  companyId: "",
+  startDate: "",
+  endDate: "",
+ };
+ applyFilters(filters);
 })
 
 </script>
@@ -158,6 +174,28 @@ onMounted(async () => {
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  gap: 0.5rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e0e0e0;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 </style>
 

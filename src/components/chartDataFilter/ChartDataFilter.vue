@@ -94,23 +94,28 @@ const resetFilters = () => {
   dateEnd.value = new Date()
   selectedClient.value = 'all'
   selectedProduct.value = 'all'
+  applyFilters();
 }
 
 const applyFilters = () => {
   const appliedFilters: Ref<FilterOptions> = ref<FilterOptions>({
-    productId: selectedProduct.value,
-    companyId: selectedClient.value,
-    startDate: dateStart.value.toLocaleDateString('pt-BR'),
-    endDate: dateEnd.value.toLocaleDateString('pt-BR'),
+    productId: selectedProduct.value == 'all' ? '' : selectedProduct.value,
+    companyId: selectedClient.value == 'all' ? '' : selectedProduct.value,
+    startDate: dateStart.value.toISOString().slice(0, 23),
+    endDate: dateEnd.value.toISOString().slice(0, 23)
   })
+  emit('applyFilters', appliedFilters.value)
 }
 
+const emit = defineEmits(['applyFilters','resetFilters'])
+
+
 const clients:Ref<SelectListOption[]> = ref<SelectListOption[]>([{
-  name: "Todas", code: "all"
+  name: "Todas", code: 'all'
 }]);
 
 const products:Ref<SelectListOption[]> = ref<SelectListOption[]>([{
-  name: "Todas", code: "all"
+  name: "Todas", code: 'all'
 }]);
 
 onMounted(() => {
@@ -119,20 +124,20 @@ onMounted(() => {
       for (let i = 0; i < resultado.allCompanies.length; i++) {
         const selectListOption: Ref<SelectListOption> = ref<SelectListOption>({
           name: resultado.allCompanies[i].name,
-          code: resultado.allCompanies[i].id
+          code: resultado.allCompanies[i].id.toString()
         })
         clients.value.push(selectListOption.value)
       }
       for (let i = 0; i < resultado.allProducts.length; i++) {
         const selectListOption: Ref<SelectListOption> = ref<SelectListOption>({
           name: resultado.allProducts[i].name,
-          code: resultado.allProducts[i].id
+          code: resultado.allProducts[i].id.toString()
         })
         products.value.push(selectListOption.value)
       }
     })
     .catch((error) => {
-      console.error('A busca geral falhou:', error.message)
+      console.error('Error fetching filter information:', error.message)
     })
 })
 </script>
