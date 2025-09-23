@@ -17,14 +17,16 @@
         <button class="nav-item">Admin</button>
       </nav>
     </header>
-
     <ChartDataFilter></ChartDataFilter>
-    <div class="metrics-grid">
-      <Cards title="Total de Chamados" :value=totalOfTicketsValue></Cards>
-      <Cards title="Tempo Médio de Resolução" :value=averageTimeValue></Cards>
-      <Cards title="% Reincidência" :value="reOpenedValue"></Cards>
-      <Cards title="SLA Cumprido" value="92%"></Cards>
-    </div>
+    <LoadingComponent v-if="loadingValue"></LoadingComponent>
+    <div v-if="!loadingValue">
+      <div class="metrics-grid">
+        <Cards title="Total de Chamados" :value=totalOfTicketsValue></Cards>
+        <Cards title="Tempo Médio de Resolução" :value=averageTimeValue></Cards>
+        <Cards title="% Reincidência" :value="reOpenedValue"></Cards>
+        <Cards title="SLA Cumprido" :value=slaCompliancePercentualValue></Cards>
+      </div>
+    </div>  
 
    <!-- <div class="charts-grid">-->
 <!--      <div class="chart-card">-->
@@ -46,12 +48,15 @@ import { Bar as BarChart, Line as LineChart } from 'vue-chartjs';
 import ChartDataFilter from "@/components/chartDataFilter/ChartDataFilter.vue";
 import Cards from "@/components/ticketsCard/Cards.vue";
 import { getChartDate } from '@/api/ChartDataApi';
+import LoadingComponent from '@/components/LoadingComponent.vue';
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement);
 
 const reOpenedValue: Ref<string> = ref<string>("0%");
 const averageTimeValue: Ref<string> = ref<string>("0 Horas")
 const totalOfTicketsValue: Ref<string> = ref<string>("0")
+const slaCompliancePercentualValue: Ref<string> = ref<string>("0%")
+const loadingValue: Ref<boolean> = ref<boolean>(false)
 
 const productChartData = ref({
   labels: ['Quarmand', 'Guizo'],
@@ -74,15 +79,18 @@ const timeChartData = ref({
   }]
 });
 
-onMounted(()=>{
-   try {
-    getChartDate("", "", "", "").then((response) => {
-      reOpenedValue.value = `${response.recidivismRate.toPrecision(2)}%`
-      averageTimeValue.value = `${response.ticketClosureTimeInHours.toPrecision(4)} Horas`
-      totalOfTicketsValue.value = `${response.ticketsCount}`
-    });
+onMounted(async () => {
+  loadingValue.value = true
+  try {
+    const response = await getChartDate("", "", "", "")
+    reOpenedValue.value = `${response.recidivismRate.toPrecision(2)}%`
+    averageTimeValue.value = `${response.ticketClosureTimeInHours.toPrecision(4)} Horas`
+    totalOfTicketsValue.value = `${response.ticketsCount}`
+    slaCompliancePercentualValue.value = `${response.slaCompliancePercentualDto.toPrecision(2)}%`
   } catch (error) {
-    console.error("Error fetching chart information", error);
+    console.error("Error fetching chart information", error)
+  } finally {
+    loadingValue.value = false
   }
 })
 
