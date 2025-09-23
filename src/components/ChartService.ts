@@ -1,9 +1,8 @@
-import type { ChartDate } from '@/components/types/ChartDateaResponse.ts'
+import type { TicketsResponse } from '@/types/Product';
 
-export function transformTicketsByProductData(data:ChartDate) {
-  const ticketByProduct = data.ticketsCountGroupedByProduct;
-  const newLabels = ticketByProduct.map(item => item.productName.split('(')[0]);
-  const newValues = ticketByProduct.map(item => item.totalTickets);
+export function transformTicketsByProductData(data:TicketsResponse) {
+  const newLabels = data.ticketsCountGroupedByProduct.map(item => item.productName.split('(')[0]);
+  const newValues = data.ticketsCountGroupedByProduct.map(item => item.totalTickets);
   return  {
     labels: newLabels,
     datasets: [{

@@ -17,33 +17,28 @@
         <button class="nav-item">Admin</button>
       </nav>
     </header>
-
     <ChartDataFilter
       @applyFilters="applyFilters"
     ></ChartDataFilter>
-    <div class="metrics-grid">
-      <Cards title="Total de Chamados" :value=totalOfTicketsValue></Cards>
-      <Cards title="Tempo Médio de Resolução" :value=averageTimeValue></Cards>
-      <Cards title="% Reincidência" :value="reOpenedValue"></Cards>
-      <Cards title="SLA Cumprido" value="92%"></Cards>
-    </div>
-
-    <div class="charts-grid">
-      <div class="chart-card">
-        <h2>Chamados por Produto</h2>
-
-        <div v-if="loading" class="loading-container">
-          <div class="spinner"></div>
-          <span>Carregando dados...</span>
-        </div>
-
-        <BarChart v-else :data="productChartData" />
+    <LoadingComponent v-if="loadingValue"></LoadingComponent>
+    <div v-if="!loadingValue">
+      <div class="metrics-grid">
+        <Cards title="Total de Chamados" :value=totalOfTicketsValue></Cards>
+        <Cards title="Tempo Médio de Resolução" :value=averageTimeValue></Cards>
+        <Cards title="% Reincidência" :value="reOpenedValue"></Cards>
+        <Cards title="SLA Cumprido" :value=slaCompliancePercentualValue></Cards>
       </div>
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h2>Chamados por Produto</h2>
+          <BarChart :data="productChartData" />
+        </div>
+      </div>  
+    </div>
 <!--      <div class="chart-card">-->
 <!--        <h2>Chamados ao Longo do Tempo</h2>-->
 <!--        <LineChart :chart-data="timeChartData" />-->
 <!--      </div>-->
-    </div>
   </div>
 </template>
 
@@ -54,29 +49,35 @@ import { Bar as BarChart} from 'vue-chartjs';
 import ChartDataFilter from "@/components/chartDataFilter/ChartDataFilter.vue";
 import Cards from "@/components/ticketsCard/Cards.vue";
 import { getChartDate } from '@/api/ChartDataApi';
-import type {FilterOptions} from "@/components/types/FilterOptions.ts";
+import LoadingComponent from '@/components/LoadingComponent.vue';
+import type {FilterOptions} from "@/types/FilterOptions.ts";
 import { transformTicketsByProductData } from '@/components/ChartService.ts'
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement);
 
-const reOpenedValue: Ref<string> = ref<string>("0%");
 
-const loading = ref(true);
 
-function applyFilters(data: FilterOptions) {
-  loading.value = true;
-  getChartDate(data.productId, data.companyId, data.startDate, data.endDate)
-    .then((response) => {
-      productChartData.value = transformTicketsByProductData(response);
-      loading.value = false;
-    })
-    .catch(error => {
-      console.error("Error fetching chart information:", error);
-    });
-}
+const applyFilters = async (data: FilterOptions) => {
+  loadingValue.value = true;
+  try {
+    const response = await getChartDate(data);
+    reOpenedValue.value = `${response.recidivismRate.toPrecision(2)}%`;
+    averageTimeValue.value = `${response.ticketClosureTimeInHours.toPrecision(4)} Horas`;
+    totalOfTicketsValue.value = `${response.ticketsCount}`;
+    slaCompliancePercentualValue.value = `${response.slaCompliancePercentualDto.toPrecision(2)}%`;
+    productChartData.value = transformTicketsByProductData(response);
+  } catch (error) {
+    console.error("Error fetching chart information", error);
+  } finally {
+    loadingValue.value = false;
+  }
+};
 
 const averageTimeValue: Ref<string> = ref<string>("0 Horas")
 const totalOfTicketsValue: Ref<string> = ref<string>("0")
+const slaCompliancePercentualValue: Ref<string> = ref<string>("0%")
+const loadingValue: Ref<boolean> = ref<boolean>(false)
+const reOpenedValue: Ref<string> = ref<string>("0%");  
 
 const productChartData: Ref<ChartData<'bar', number[], string>> = ref({
   labels: [],
@@ -99,16 +100,14 @@ const timeChartData = ref({
   }]
 });
 
-onMounted(()=>{
-   try {
-    getChartDate("", "", "", "").then((response) => {
-      reOpenedValue.value = `${response.recidivismRate.toPrecision(2)}%`
-      averageTimeValue.value = `${response.ticketClosureTimeInHours.toPrecision(4)} Horas`
-      totalOfTicketsValue.value = `${response.ticketsCount}`
-    });
-  } catch (error) {
-    console.error("Error fetching chart information", error);
-  }
+onMounted(async () => {
+  const filters: FilterOptions = {
+  productId: "",
+  companyId: "",
+  startDate: "",
+  endDate: "",
+ };
+ applyFilters(filters);
 })
 
 </script>

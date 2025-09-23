@@ -5,4 +5,5 @@ export interface ChartDate {
   ticketsCountGroupedByProduct : TicketsByProduct[];
   ticketClosureTimeInHours: number;
   ticketsCount:number;
+  slaCompliancePercentualDto:number;
 }
