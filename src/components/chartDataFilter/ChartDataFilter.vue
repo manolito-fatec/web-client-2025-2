@@ -100,7 +100,7 @@ const resetFilters = () => {
 const applyFilters = () => {
   const appliedFilters: Ref<FilterOptions> = ref<FilterOptions>({
     productId: selectedProduct.value == 'all' ? '' : selectedProduct.value,
-    companyId: selectedClient.value == 'all' ? '' : selectedProduct.value,
+    companyId: selectedClient.value == 'all' ? '' : selectedClient.value,
     startDate: dateStart.value.toISOString().slice(0, 23),
     endDate: dateEnd.value.toISOString().slice(0, 23)
   })
