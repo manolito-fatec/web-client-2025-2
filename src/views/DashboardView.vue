@@ -3,12 +3,6 @@
     <header class="header">
       <div class="header-content">
         <h1>Pardal - Análise de Chamados</h1>
-        <div class="analyst-info">
-          <span>Analista</span>
-          <select>
-            <option>Selecione</option>
-          </select>
-        </div>
       </div>
       <nav class="navigation">
         <button class="nav-item active">Dashboard</button>
