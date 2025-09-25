@@ -81,6 +81,7 @@ baseDate.setMonth(baseDate.getMonth() - 1)
 
 const dateStart = ref(baseDate)
 const dateEnd = ref(new Date())
+const periods = ref<string>('MONTH')
 
 const selectedClient = ref('all')
 const selectedProduct = ref('all')
@@ -94,6 +95,7 @@ const resetFilters = () => {
   dateEnd.value = new Date()
   selectedClient.value = 'all'
   selectedProduct.value = 'all'
+  periods.value = 'MONTH'
   applyFilters();
 }
 
@@ -102,7 +104,8 @@ const applyFilters = () => {
     productId: selectedProduct.value == 'all' ? '' : selectedProduct.value,
     companyId: selectedClient.value == 'all' ? '' : selectedProduct.value,
     startDate: dateStart.value.toISOString().slice(0, 23),
-    endDate: dateEnd.value.toISOString().slice(0, 23)
+    endDate: dateEnd.value.toISOString().slice(0, 23),
+    periods: periods.value
   })
   emit('applyFilters', appliedFilters.value)
 }

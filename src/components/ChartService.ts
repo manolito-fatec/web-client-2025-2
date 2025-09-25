@@ -1,23 +1,39 @@
 import type { ChartDate } from '@/components/types/ChartDateaResponse.ts'
 
-export function transformTicketsByProductData(data:ChartDate) {
+/**
+ * Transforms ticket data grouped by product into a Chart.js compatible dataset.
+ *
+ * @param data - The chart data object containing tickets grouped by product.
+ * @returns An object with `labels` (product names) and `datasets` (tickets count per product).
+ */
+export function transformTicketsByProductData(data: ChartDate) {
   const ticketByProduct = data.ticketsCountGroupedByProduct;
   const newLabels = ticketByProduct.map(item => item.productName.split('(')[0]);
   const newValues = ticketByProduct.map(item => item.totalTickets);
-  return  {
+
+  return {
     labels: newLabels,
-    datasets: [{
-      label: 'Chamados',
-      backgroundColor: '#000000',
-      data: newValues
-    }]
+    datasets: [
+      {
+        label: 'Chamados',
+        backgroundColor: '#000000',
+        data: newValues,
+      },
+    ],
   };
 }
 
-export function transformTicketsByPeriod(data:ChartDate) {
-  const ticketByPeriod = data.ticketsCountOverTime
-  const newLabels = ticketByPeriod.map((item) => item.period)
-  const newValues = ticketByPeriod.map((item) => item.totalTickets)
+/**
+ * Transforms ticket data grouped by time period into a Chart.js compatible dataset.
+ *
+ * @param data - The chart data object containing tickets over time.
+ * @returns An object with `labels` (time periods) and `datasets` (tickets count per period).
+ */
+export function transformTicketsByPeriod(data: ChartDate) {
+  const ticketByPeriod = data.ticketsCountOverTime;
+  const newLabels = ticketByPeriod.map(item => item.period);
+  const newValues = ticketByPeriod.map(item => item.totalTickets);
+
   return {
     labels: newLabels,
     datasets: [
@@ -29,5 +45,6 @@ export function transformTicketsByPeriod(data:ChartDate) {
         tension: 0.1,
       },
     ],
-  }
+  };
 }
+

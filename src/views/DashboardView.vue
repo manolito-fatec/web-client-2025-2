@@ -18,12 +18,10 @@
       </nav>
     </header>
 
-    <ChartDataFilter
-      @applyFilters="applyFilters"
-    ></ChartDataFilter>
+    <ChartDataFilter @applyFilters="applyFilters"></ChartDataFilter>
     <div class="metrics-grid">
-      <Cards title="Total de Chamados" :value=totalOfTicketsValue></Cards>
-      <Cards title="Tempo Médio de Resolução" :value=averageTimeValue></Cards>
+      <Cards title="Total de Chamados" :value="totalOfTicketsValue"></Cards>
+      <Cards title="Tempo Médio de Resolução" :value="averageTimeValue"></Cards>
       <Cards title="% Reincidência" :value="reOpenedValue"></Cards>
       <Cards title="SLA Cumprido" value="92%"></Cards>
     </div>
@@ -39,78 +37,102 @@
 
         <BarChart v-else :data="productChartData" />
       </div>
-<!--      <div class="chart-card">-->
-<!--        <h2>Chamados ao Longo do Tempo</h2>-->
-<!--        <LineChart :chart-data="timeChartData" />-->
-<!--      </div>-->
+      <div class="chart-card">
+        <h2>Chamados ao Longo do Tempo</h2>
+        <LineChart :data="timeChartData" />
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, type Ref } from 'vue';
-import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement, type ChartData } from 'chart.js';
-import { Bar as BarChart} from 'vue-chartjs';
-import ChartDataFilter from "@/components/chartDataFilter/ChartDataFilter.vue";
-import Cards from "@/components/ticketsCard/Cards.vue";
-import { getChartDate } from '@/api/ChartDataApi';
-import type {FilterOptions} from "@/components/types/FilterOptions.ts";
-import { transformTicketsByProductData } from '@/components/ChartService.ts'
+import { onMounted, ref, type Ref } from 'vue'
+import {
+  Chart as ChartJS,
+  Title,
+  Tooltip,
+  Legend,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  LineElement,
+  PointElement,
+  type ChartData,
+} from 'chart.js'
+import { Bar as BarChart, Line as LineChart } from 'vue-chartjs'
+import ChartDataFilter from '@/components/chartDataFilter/ChartDataFilter.vue'
+import Cards from '@/components/ticketsCard/Cards.vue'
+import { getChartDate } from '@/api/ChartDataApi'
+import type { FilterOptions } from '@/components/types/FilterOptions.ts'
+import {
+  transformTicketsByPeriod,
+  transformTicketsByProductData,
+} from '@/components/ChartService.ts'
 
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, LineElement, PointElement);
+ChartJS.register(
+  Title,
+  Tooltip,
+  Legend,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  LineElement,
+  PointElement,
+)
 
-const reOpenedValue: Ref<string> = ref<string>("0%");
+const reOpenedValue: Ref<string> = ref<string>('0%')
 
-const loading = ref(true);
+const loading = ref(true)
 
 function applyFilters(data: FilterOptions) {
-  loading.value = true;
-  getChartDate(data.productId, data.companyId, data.startDate, data.endDate)
+  loading.value = true
+  getChartDate(data.productId, data.companyId, data.startDate, data.endDate, data.periods!)
     .then((response) => {
-      productChartData.value = transformTicketsByProductData(response);
-      loading.value = false;
+      productChartData.value = transformTicketsByProductData(response)
+      timeChartData.value = transformTicketsByPeriod(response)
+      loading.value = false
     })
-    .catch(error => {
-      console.error("Error fetching chart information:", error);
-    });
+    .catch((error) => {
+      console.error('Error fetching chart information:', error)
+    })
 }
 
-const averageTimeValue: Ref<string> = ref<string>("0 Horas")
-const totalOfTicketsValue: Ref<string> = ref<string>("0")
+const averageTimeValue: Ref<string> = ref<string>('0 Horas')
+const totalOfTicketsValue: Ref<string> = ref<string>('0')
 
 const productChartData: Ref<ChartData<'bar', number[], string>> = ref({
   labels: [],
-  datasets: [{
-    label: 'Chamados',
-    backgroundColor: '#000000',
-    data: []
-  }]
-});
-
-const timeChartData = ref({
-  labels: ['2025-08', '2025-09'],
-  datasets: [{
-    label: 'Chamados',
-    backgroundColor: '#3b82f6',
-    borderColor: '#3b82f6',
-    data: [5, 1],
-    fill: false,
-    tension: 0.4
-  }]
-});
-
-onMounted(()=>{
-   try {
-    getChartDate("", "", "", "").then((response) => {
-      reOpenedValue.value = `${response.recidivismRate.toPrecision(2)}%`
-      averageTimeValue.value = `${response.ticketClosureTimeInHours.toPrecision(4)} Horas`
-      totalOfTicketsValue.value = `${response.ticketsCount}`
-    });
-  } catch (error) {
-    console.error("Error fetching chart information", error);
-  }
+  datasets: [
+    {
+      label: 'Chamados',
+      backgroundColor: '#000000',
+      data: [],
+    },
+  ],
 })
 
+const timeChartData: Ref<ChartData<'bar', number[], string>> = ref({
+  labels: [],
+  datasets: [
+    {
+      label: 'Chamados',
+      backgroundColor: '#000000',
+      data: [],
+    },
+  ],
+})
+
+onMounted(() => {
+  //  try {
+  //   getChartDate("", "", "", "", "").then((response) => {
+  //     reOpenedValue.value = `${response.recidivismRate.toPrecision(2)}%`
+  //     averageTimeValue.value = `${response.ticketClosureTimeInHours.toPrecision(4)} Horas`
+  //     totalOfTicketsValue.value = `${response.ticketsCount}`
+  //   });
+  // } catch (error) {
+  //   console.error("Error fetching chart information", error);
+  // }
+})
 </script>
 
 <style scoped>
@@ -125,7 +147,7 @@ onMounted(()=>{
   background-color: #fff;
   padding: 1.5rem;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
 }
 
@@ -156,7 +178,6 @@ onMounted(()=>{
   border-bottom: 2px solid #3b82f6;
 }
 
-
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -174,7 +195,7 @@ onMounted(()=>{
   background-color: #fff;
   padding: 1.5rem;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .loading-container {
@@ -196,7 +217,8 @@ onMounted(()=>{
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
-
