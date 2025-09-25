@@ -71,9 +71,9 @@ import './ChartDataFilter.css'
 import { onMounted, type Ref, ref } from 'vue'
 import Select from 'primevue/select'
 import DatePicker from 'primevue/datepicker'
-import type { FilterOptions } from '@/components/types/FilterOptions.ts'
+import type { FilterOptions } from '@/types/FilterOptions'
 import { fetchFilterOptions } from '@/api/FiltersApi.ts'
-import type { SelectListOption } from '@/components/types/SelectListOption.ts'
+import type { SelectListOption } from '@/types/SelectListOption'
 
 const baseDate = new Date()
 
@@ -102,7 +102,7 @@ const resetFilters = () => {
 const applyFilters = () => {
   const appliedFilters: Ref<FilterOptions> = ref<FilterOptions>({
     productId: selectedProduct.value == 'all' ? '' : selectedProduct.value,
-    companyId: selectedClient.value == 'all' ? '' : selectedProduct.value,
+    companyId: selectedClient.value == 'all' ? '' : selectedClient.value,
     startDate: dateStart.value.toISOString().slice(0, 23),
     endDate: dateEnd.value.toISOString().slice(0, 23),
     periods: periods.value
@@ -138,7 +138,6 @@ onMounted(() => {
         })
         products.value.push(selectListOption.value)
       }
-      applyFilters();
     })
     .catch((error) => {
       console.error('Error fetching filter information:', error.message)
