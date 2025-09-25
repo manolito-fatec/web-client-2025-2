@@ -13,3 +13,21 @@ export function transformTicketsByProductData(data:ChartDate) {
     }]
   };
 }
+
+export function transformTicketsByPeriod(data:ChartDate) {
+  const ticketByPeriod = data.ticketsCountOverTime
+  const newLabels = ticketByPeriod.map((item) => item.period)
+  const newValues = ticketByPeriod.map((item) => item.totalTickets)
+  return {
+    labels: newLabels,
+    datasets: [
+      {
+        label: 'Tickets',
+        data: newValues,
+        fill: false,
+        borderColor: 'rgb(0,0,0)',
+        tension: 0.1,
+      },
+    ],
+  }
+}
