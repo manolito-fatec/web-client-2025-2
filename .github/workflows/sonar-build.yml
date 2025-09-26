@@ -18,6 +18,3 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          extra-properties: |
-            sonar.pullrequest.github.summary_comment=true
