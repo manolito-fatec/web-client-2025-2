@@ -3,4 +3,5 @@ export type FilterOptions = {
   companyId: string
   startDate: string
   endDate: string
+  periods?: string
 }
