@@ -10,7 +10,6 @@ export function transformTicketsByProductData(data: TicketsResponse) {
   const ticketByProduct = data.ticketsCountGroupedByProduct;
   const newLabels = ticketByProduct.map(item => item.productName.split('(')[0]);
   const newValues = ticketByProduct.map(item => item.totalTickets);
-  const newnew = "teste";
 
   return {
     labels: newLabels,
