@@ -1,3 +1,5 @@
+import type { TicketsByPeriod } from '@/components/types/ChartTypes/TicketsByPeriod.ts'
+
 export interface Product {
   id: number;
   name: string;
@@ -15,4 +17,5 @@ interface TicketCountGroupedByProduct {
 
 export interface TicketsResponse {
   ticketsCountGroupedByProduct: TicketCountGroupedByProduct[];
+  ticketsCountOverTime: TicketsByPeriod[];
 }

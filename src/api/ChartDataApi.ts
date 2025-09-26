@@ -8,7 +8,7 @@ export async function getChartDate(request:FilterOptions)
 {
   try
   {
-    const response = await axios.get<ChartDate>(BASE_URL+`?productId=${request.productId}&customerId=${request.companyId}&fromDate=${request.startDate}&toDate=${request.endDate}`)
+    const response = await axios.get<ChartDate>(BASE_URL+`?productId=${request.productId}&customerId=${request.companyId}&fromDate=${request.startDate}&toDate=${request.endDate}&periods=${request.periods}`)
     return response.data;
   }catch (error) {
     throw error;

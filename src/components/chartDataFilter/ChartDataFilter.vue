@@ -61,9 +61,8 @@
       <button class="btn btn-apply" @click="applyFilters">Aplicar</button>
     </div>
   </div>
-  <div class="export-button-container">
-    <button class="btn btn-export">Exportar</button>
-  </div>
+    <div class="export-button-container">
+    </div>
 </template>
 
 <script setup lang="ts">
