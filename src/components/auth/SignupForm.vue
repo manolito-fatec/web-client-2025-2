@@ -1,21 +1,54 @@
 <template>
   <div class="signup-form">
     <p class="info-text">
-      Digite seu e-mail corporativo com domínio <strong>@pardal</strong> para receber o link de confirmação.
+      Digite seu e-mail corporativo com domínio <strong>@pardal</strong> para receber o link de
+      confirmação.
     </p>
     <div class="field">
       <label>E-mail</label>
-      <input placeholder="seunome@pardal.com" />
-      <span class="error-text">Erro aqui</span>
+      <input placeholder="seunome@pardal.com" v-model="email"/>
+      <span class="error-text" v-if="!isPardalEmailValid">{{errorMsg}}</span>
     </div>
-    <button class="btn primary">Enviar link</button>
+    <button class="btn primary" :disabled="!isPardalEmailValid" @click="handleSignIn">
+      Enviar Link
+    </button>
     <button class="btn secondary" @click="emit('toggleSign')">Cancelar</button>
     <p class="hint">Um e-mail será enviado com link válido por 24h.</p>
   </div>
 </template>
 
 <script setup lang="ts">
-const emit = defineEmits(['toggleSign']);
+import { ref, computed, type Ref } from 'vue'
+
+const emit = defineEmits(['toggleSign'])
+
+const email: Ref<string> = ref<string>('')
+
+const pardalRegex = /^[a-zA-Z0-9._-]+@pardal\.com$/
+
+const errorMsg = computed(() => {
+  if (email.value === '') {
+    return 'O e-mail é obrigatório.'
+  }
+
+  if (!pardalRegex.test(email.value)) {
+    return 'O e-mail deve ter o domínio @pardal.com.'
+  }
+
+  return ''
+})
+
+const isPardalEmailValid = computed(() => {
+  return errorMsg.value === ''
+})
+
+function handleSignIn() {
+  if (isPardalEmailValid.value) {
+    console.log('E-mail válido e é @pardal.com. Prosseguir com o cadastro.')
+  } else {
+    console.log('E-mail inválido ou não pertence ao domínio @pardal.com.')
+  }
+}
 </script>
 
 <style scoped>
@@ -61,6 +94,12 @@ const emit = defineEmits(['toggleSign']);
   color: white;
   border: none;
   margin-top: 0.25rem;
+}
+
+.btn.primary:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  filter: none;
 }
 
 .btn.primary:hover {
