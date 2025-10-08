@@ -1,7 +1,9 @@
 <template>
   <div class="auth-container">
     <div class="auth-card">
-      <div class="logo"></div>
+      <div class="logo">
+        <img src="@/assets/logo.png" alt="Pardal Logo" class="logo" />
+      </div>
       <h1 class="title">Pardal</h1>
       <p class="subtitle">
         Faça login ou cadastre-se com e-mail do domínio <span>@pardal</span>
@@ -71,6 +73,7 @@ import LoginForm from '@/components/auth/LoginForm.vue'
 
 .title {
   font-size: 26px;
+  font-family: Arial, sans-serif;
   font-weight: bold;
   color: #1e3a8a;
   margin-bottom: 0.5rem;
@@ -78,46 +81,25 @@ import LoginForm from '@/components/auth/LoginForm.vue'
 
 .subtitle {
   font-size: 14px;
+  font-family: Arial, sans-serif;
   color: #6b7280;
   margin-bottom: 1.5rem;
 }
 
 .subtitle span {
   font-weight: 600;
+  font-family: Arial, sans-serif;
   color: #1e3a8a;
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-  gap: 0.25rem;
-  margin-bottom: 0.75rem;
-}
 
-.field label {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.field input {
-  height: 40px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 0 0.75rem;
-  outline: none;
-  transition: box-shadow 0.2s;
-}
-
-.field input:focus {
-  box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.4);
-}
 
 .btn {
   width: 100%;
   height: 40px;
   border-radius: 8px;
   font-weight: 600;
+  font-family: Arial, sans-serif;
   transition: filter 0.2s;
 }
 
@@ -145,17 +127,20 @@ import LoginForm from '@/components/auth/LoginForm.vue'
 
 .error-text {
   font-size: 12px;
+  font-family: Arial, sans-serif;
   color: #dc2626;
 }
 
 .info-text {
   font-size: 14px;
   color: #374151;
+  font-family: Arial, sans-serif;
   margin-bottom: 0.75rem;
 }
 
 .hint {
   font-size: 12px;
+  font-family: Arial, sans-serif;
   color: #6b7280;
   margin-top: 0.75rem;
 }
@@ -164,11 +149,13 @@ import LoginForm from '@/components/auth/LoginForm.vue'
   font-size: 20px;
   font-weight: 600;
   color: #1e3a8a;
+  font-family: Arial, sans-serif;
   margin-bottom: 0.5rem;
 }
 
 .email-sent p, .email-sent ul {
   font-size: 14px;
+  font-family: Arial, sans-serif;
   color: #374151;
   margin-top: 0.5rem;
 }
@@ -187,6 +174,7 @@ import LoginForm from '@/components/auth/LoginForm.vue'
   padding: 0.5rem 1rem;
   color: white;
   font-size: 14px;
+  font-family: Arial, sans-serif;
 }
 
 .toast.success {
