@@ -45,4 +45,57 @@
 .field input:focus {
   box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.4);
 }
+
+
+
+.btn {
+  width: 100%;
+  height: 40px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-family: Arial, sans-serif;
+  transition: filter 0.2s;
+}
+
+.btn.primary {
+  background: #1e3a8a;
+  color: white;
+  border: none;
+  margin-top: 0.25rem;
+}
+
+.btn.primary:hover {
+  filter: brightness(1.1);
+}
+
+.btn.secondary {
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  color: #1e3a8a;
+  margin-top: 0.75rem;
+}
+
+.btn.secondary:hover {
+  background: #f3f4f6;
+}
+
+.hint {
+  font-size: 12px;
+  font-family: Arial, sans-serif;
+  color: #6b7280;
+  margin-top: 0.75rem;
+}
+
+.info-text {
+  font-size: 14px;
+  color: #374151;
+  font-family: Arial, sans-serif;
+  margin-bottom: 0.75rem;
+}
+
+.error-text {
+  font-size: 12px;
+  font-family: Arial, sans-serif;
+  color: #dc2626;
+}
 </style>
