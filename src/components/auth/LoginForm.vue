@@ -1,6 +1,3 @@
-<script setup lang="ts">
-</script>
-
 <template>
   <div class="login-form">
     <div class="field">
@@ -12,9 +9,13 @@
       <input type="password" placeholder="********" />
     </div>
     <button class="btn primary">Entrar</button>
-    <button class="btn secondary">Cadastrar</button>
+    <button class="btn secondary" @click="emit('toggleSign')">Cadastrar</button>
   </div>
 </template>
+
+<script setup lang="ts">
+const emit = defineEmits(['toggleSign']);
+</script>
 
 <style scoped>
 .field {

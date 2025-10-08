@@ -9,12 +9,12 @@
         Faça login ou cadastre-se com e-mail do domínio <span>@pardal</span>
       </p>
 
-      <div class="form-section">
-        <!-- Login Form -->
-        <LoginForm/>
-
+      <div class="form-section" v-if="!SignMode">
+        <LoginForm  @toggleSign="toggleSign"/>
+      </div>
+      <div class="form-section" v-else>
         <!-- Signup Form -->
-        <SignupForm />
+        <SignupForm  @toggleSign="toggleSign"/>
 
         <!-- Email Sent -->
         <div class="email-sent">
@@ -38,6 +38,14 @@
 
 import SignupForm from '@/components/auth/SignupForm.vue'
 import LoginForm from '@/components/auth/LoginForm.vue'
+import { ref, type Ref } from 'vue'
+
+const SignMode: Ref<boolean> = ref<boolean>(false)
+
+const toggleSign = () => {
+  console.log(SignMode.value)
+  SignMode.value = !SignMode.value
+}
 </script>
 
 <style scoped>
@@ -93,6 +101,36 @@ import LoginForm from '@/components/auth/LoginForm.vue'
 }
 
 
+.btn {
+  width: 100%;
+  height: 40px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-family: Arial, sans-serif;
+  transition: filter 0.2s;
+}
+
+.btn.primary {
+  background: #1e3a8a;
+  color: white;
+  border: none;
+  margin-top: 0.25rem;
+}
+
+.btn.primary:hover {
+  filter: brightness(1.1);
+}
+
+.btn.secondary {
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  color: #1e3a8a;
+  margin-top: 0.75rem;
+}
+
+.btn.secondary:hover {
+  background: #f3f4f6;
+}
 
 
 .email-sent h3 {

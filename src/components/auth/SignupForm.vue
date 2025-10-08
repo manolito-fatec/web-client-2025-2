@@ -1,6 +1,3 @@
-<script setup lang="ts">
-</script>
-
 <template>
   <div class="signup-form">
     <p class="info-text">
@@ -12,10 +9,14 @@
       <span class="error-text">Erro aqui</span>
     </div>
     <button class="btn primary">Enviar link</button>
-    <button class="btn secondary">Cancelar</button>
+    <button class="btn secondary" @click="emit('toggleSign')">Cancelar</button>
     <p class="hint">Um e-mail será enviado com link válido por 24h.</p>
   </div>
 </template>
+
+<script setup lang="ts">
+const emit = defineEmits(['toggleSign']);
+</script>
 
 <style scoped>
 .field {
@@ -45,8 +46,6 @@
 .field input:focus {
   box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.4);
 }
-
-
 
 .btn {
   width: 100%;
