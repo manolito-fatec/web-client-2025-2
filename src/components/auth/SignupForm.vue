@@ -14,6 +14,16 @@
     </button>
     <button class="btn secondary" @click="emit('toggleSign')">Cancelar</button>
     <p class="hint">Um e-mail será enviado com link válido por 24h.</p>
+
+    <div class="email-sent">
+      <h3>Verifique seu e-mail</h3>
+      <p>Enviamos um link para concluir seu cadastro. Verifique sua caixa de entrada.</p>
+      <ul>
+        <li>O link expira em 24 horas.</li>
+        <li>Verifique também a pasta de spam.</li>
+      </ul>
+      <button class="btn secondary" @click="emit('toggleSign')">Voltar ao login</button>
+    </div>
   </div>
 </template>
 
@@ -78,6 +88,27 @@ function handleSignIn() {
 
 .field input:focus {
   box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.4);
+}
+
+.email-sent h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e3a8a;
+  font-family: Arial, sans-serif;
+  margin-bottom: 0.5rem;
+}
+
+.email-sent p, .email-sent ul {
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+  color: #374151;
+  margin-top: 0.5rem;
+}
+
+.email-sent ul {
+  list-style: disc;
+  margin-left: 1.25rem;
+  color: #6b7280;
 }
 
 .btn {

@@ -13,22 +13,10 @@
         <LoginForm  @toggleSign="toggleSign"/>
       </div>
       <div class="form-section" v-else>
-        <!-- Signup Form -->
         <SignupForm  @toggleSign="toggleSign"/>
 
-        <!-- Email Sent -->
-        <div class="email-sent">
-          <h3>Verifique seu e-mail</h3>
-          <p>Enviamos um link para concluir seu cadastro. Verifique sua caixa de entrada.</p>
-          <ul>
-            <li>O link expira em 24 horas.</li>
-            <li>Verifique também a pasta de spam.</li>
-          </ul>
-          <button class="btn secondary">Voltar ao login</button>
-        </div>
       </div>
 
-      <!-- Toast -->
       <div class="toast success">Login efetuado (mock)</div>
     </div>
   </div>
@@ -133,26 +121,7 @@ const toggleSign = () => {
 }
 
 
-.email-sent h3 {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1e3a8a;
-  font-family: Arial, sans-serif;
-  margin-bottom: 0.5rem;
-}
 
-.email-sent p, .email-sent ul {
-  font-size: 14px;
-  font-family: Arial, sans-serif;
-  color: #374151;
-  margin-top: 0.5rem;
-}
-
-.email-sent ul {
-  list-style: disc;
-  margin-left: 1.25rem;
-  color: #6b7280;
-}
 
 .toast {
   position: fixed;
