@@ -2,19 +2,42 @@
   <div class="login-form">
     <div class="field">
       <label>E-mail</label>
-      <input placeholder="seunome@pardal.com" />
+      <input placeholder="seunome@pardal.com" v-model="email" :disabled="isLoading" />
     </div>
     <div class="field">
       <label>Senha</label>
-      <input type="password" placeholder="********" />
+      <input type="password" placeholder="********" v-model="password" :disabled="isLoading" />
     </div>
-    <button class="btn primary">Entrar</button>
-    <button class="btn secondary" @click="emit('toggleSign')">Cadastrar</button>
+    <button class="btn primary" @click="handleLogin" :disabled="isLoading">
+      <span v-if="!isLoading">Entrar</span>
+      <span v-else class="loading-container">
+        <span class="spinner"></span>
+        Entrando...
+      </span>
+    </button>
+    <button class="btn secondary" @click="emit('toggleSign')" :disabled="isLoading">Cadastrar</button>
   </div>
 </template>
 
 <script setup lang="ts">
-const emit = defineEmits(['toggleSign']);
+import { type Ref, ref } from 'vue'
+import router from '@/router'
+import { useAuthStore } from '@/api/session/auth.ts'
+
+const emit = defineEmits(['toggleSign'])
+
+const email: Ref<string> = ref<string>('')
+const password: Ref<string> = ref<string>('')
+const isLoading: Ref<boolean> = ref<boolean>(false)
+
+function handleLogin() {
+  isLoading.value = true
+  useAuthStore().loginAndStore({email: email.value, password: password.value}).then(() => {
+    router.push('/home')
+  }).catch(() => {
+    isLoading.value = false
+  })
+}
 </script>
 
 <style scoped>
@@ -46,6 +69,11 @@ const emit = defineEmits(['toggleSign']);
   box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.4);
 }
 
+.field input:disabled {
+  background-color: #f9fafb;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
 
 .btn {
   width: 100%;
@@ -54,6 +82,12 @@ const emit = defineEmits(['toggleSign']);
   font-weight: 600;
   font-family: Arial, sans-serif;
   transition: filter 0.2s;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .btn.primary {
@@ -61,9 +95,13 @@ const emit = defineEmits(['toggleSign']);
   color: white;
   border: none;
   margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
-.btn.primary:hover {
+.btn.primary:hover:not(:disabled) {
   filter: brightness(1.1);
 }
 
@@ -74,8 +112,29 @@ const emit = defineEmits(['toggleSign']);
   margin-top: 0.75rem;
 }
 
-.btn.secondary:hover {
+.btn.secondary:hover:not(:disabled) {
   background: #f3f4f6;
 }
 
+.loading-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 </style>

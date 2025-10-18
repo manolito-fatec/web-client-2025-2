@@ -6,7 +6,7 @@
       </div>
       <h1 class="title">Pardal</h1>
       <p class="subtitle">
-        Faça login ou cadastre-se com e-mail do domínio <span>@pardal</span>
+        Faça login ou cadastre-se com seu e-mail
       </p>
 
       <div class="form-section" v-if="!SignMode">
@@ -14,10 +14,8 @@
       </div>
       <div class="form-section" v-else>
         <SignupForm  @toggleSign="toggleSign"/>
-
       </div>
 
-      <div class="toast success">Login efetuado (mock)</div>
     </div>
   </div>
 </template>

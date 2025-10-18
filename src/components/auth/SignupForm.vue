@@ -1,21 +1,41 @@
 <template>
   <div class="signup-form">
     <p class="info-text">
-      Digite seu e-mail corporativo com domínio <strong>@pardal</strong> para receber o link de
+      Digite seu e-mail corporativo para receber o link de
       confirmação.
     </p>
+
     <div class="field">
       <label>E-mail</label>
       <input placeholder="seunome@pardal.com" v-model="email"/>
-      <span class="error-text" v-if="!isPardalEmailValid">{{errorMsg}}</span>
+      <span class="error-text" v-if="!isPardalEmailValid">{{emailErrorMsg}}</span>
     </div>
-    <button class="btn primary" :disabled="!isPardalEmailValid" @click="handleSignIn">
+
+    <div class="field">
+      <label>Nome completo</label>
+      <input placeholder="Seu nome completo" v-model="name"/>
+      <span class="error-text" v-if="!isNameValid">{{nameErrorMsg}}</span>
+    </div>
+
+    <div class="field">
+      <label>Telefone</label>
+      <input placeholder="(00)00000-0000" v-model="phone" @input="handlePhoneInput"/>
+      <span class="error-text" v-if="!isPhoneValid">{{phoneErrorMsg}}</span>
+    </div>
+
+    <div class="field">
+      <label>Senha</label>
+      <input placeholder="*************" type="password" v-model="password"/>
+      <span class="error-text" v-if="!isPasswordValid">{{passwordErrorMsg}}</span>
+    </div>
+
+    <button class="btn primary" :disabled="!isFormValid" @click="handleSignIn">
       Enviar Link
     </button>
     <button class="btn secondary" @click="emit('toggleSign')">Cancelar</button>
     <p class="hint">Um e-mail será enviado com link válido por 24h.</p>
 
-    <div class="email-sent">
+    <div v-if="created" class="email-sent">
       <h3>Verifique seu e-mail</h3>
       <p>Enviamos um link para concluir seu cadastro. Verifique sua caixa de entrada.</p>
       <ul>
@@ -29,34 +49,113 @@
 
 <script setup lang="ts">
 import { ref, computed, type Ref } from 'vue'
+import type { NewUser } from '@/types/NewUser.ts'
+import { signApi } from '@/api/SignApi.ts'
 
 const emit = defineEmits(['toggleSign'])
+const created = ref<boolean>(false)
 
 const email: Ref<string> = ref<string>('')
+const name: Ref<string> = ref<string>('')
+const phone: Ref<string> = ref<string>('')
+const password: Ref<string> = ref<string>('')
 
-const pardalRegex = /^[a-zA-Z0-9._-]+@pardal\.com$/
+const pardalRegex =  /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+const nameRegex = /^[a-záàâãéèêíïóôõöúçñ\s]{3,}$/i
+const phoneRegex = /^\(\d{2}\)\d{5}-\d{4}$/
+const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/
 
-const errorMsg = computed(() => {
+const emailErrorMsg = computed(() => {
   if (email.value === '') {
     return 'O e-mail é obrigatório.'
   }
-
   if (!pardalRegex.test(email.value)) {
-    return 'O e-mail deve ter o domínio @pardal.com.'
+    return 'O e-mail deve ter o formato de um e-mail.'
   }
-
   return ''
 })
 
 const isPardalEmailValid = computed(() => {
-  return errorMsg.value === ''
+  return emailErrorMsg.value === ''
 })
 
-function handleSignIn() {
-  if (isPardalEmailValid.value) {
-    console.log('E-mail válido e é @pardal.com. Prosseguir com o cadastro.')
+const nameErrorMsg = computed(() => {
+  if (name.value === '') {
+    return 'O nome completo é obrigatório.'
+  }
+  if (!nameRegex.test(name.value)) {
+    return 'Nome deve ter no mínimo 3 caracteres e conter apenas letras.'
+  }
+  return ''
+})
+
+const isNameValid = computed(() => {
+  return nameErrorMsg.value === ''
+})
+
+const phoneErrorMsg = computed(() => {
+  if (phone.value === '') {
+    return 'O telefone é obrigatório.'
+  }
+  if (!phoneRegex.test(phone.value)) {
+    return 'Telefone deve estar no formato (00)00000-0000.'
+  }
+  return ''
+})
+
+const isPhoneValid = computed(() => {
+  return phoneErrorMsg.value === ''
+})
+
+const passwordErrorMsg = computed(() => {
+  if (password.value === '') {
+    return 'A senha é obrigatória.'
+  }
+  if (password.value.length < 8) {
+    return 'Senha deve ter no mínimo 8 caracteres.'
+  }
+  if (!passwordRegex.test(password.value)) {
+    return 'Senha deve conter letras, números e caracteres especiais (@$!%*#?&).'
+  }
+  return ''
+})
+
+const isPasswordValid = computed(() => {
+  return passwordErrorMsg.value === ''
+})
+
+const isFormValid = computed(() => {
+  return isPardalEmailValid.value && isNameValid.value && isPhoneValid.value && isPasswordValid.value
+})
+
+function handlePhoneInput() {
+  let value = phone.value.replace(/\D/g, '')
+
+  if (value.length > 11) {
+    value = value.slice(0, 11)
+  }
+
+  if (value.length <= 2) {
+    phone.value = value ? `(${value}` : ''
+  } else if (value.length <= 7) {
+    phone.value = `(${value.slice(0, 2)})${value.slice(2)}`
   } else {
-    console.log('E-mail inválido ou não pertence ao domínio @pardal.com.')
+    phone.value = `(${value.slice(0, 2)})${value.slice(2, 7)}-${value.slice(7)}`
+  }
+}
+
+function handleSignIn() {
+  if (isFormValid.value) {
+    const newUser:Ref<NewUser> = ref<NewUser>({ email: email.value,
+      password: password.value,
+      phone: phone.value,
+      name: name.value
+    })
+    signApi(newUser.value).then(() => {
+      created.value = true
+    })
+  } else {
+    console.log('Formulário inválido. Corrija os erros.')
   }
 }
 </script>
