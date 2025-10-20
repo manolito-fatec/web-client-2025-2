@@ -60,17 +60,33 @@ ChartJS.register(
   annotationPlugin
 )
 
-const paretoLabels = ref([
-  'Login/Senha',
-  'Faturamento',
-  'Instabilidade no Produto Y',
-  'Funcionalidade Y',
-  'Relatórios'
-])
-const paretoOccurrences = ref([834, 612, 451, 320, 298])
+const selectedClient = ref({ name: 'Todos', code: 'ALL' });
+const clientOptions = ref([
+  { name: 'Todos', code: 'ALL' },
+  { name: 'Empresa Alpha', code: 'E1' },
+  { name: 'Empresa Beta', code: 'E2' },
+]);
+
+const rawParetoData = ref({
+  'Login/Senha': { ALL: 834, E1: 500, E2: 334 },
+  'Faturamento': { ALL: 612, E1: 200, E2: 412 },
+  'Instabilidade no Produto Y': { ALL: 451, E1: 300, E2: 151 },
+  'Funcionalidade Y': { ALL: 320, E1: 150, E2: 170 },
+  'Relatórios': { ALL: 298, E1: 50, E2: 248 },
+});
+
+const paretoLabels = computed(() => Object.keys(rawParetoData.value));
+
+const paretoOccurrences = computed(() => {
+  const clientCode = selectedClient.value.code;
+  return paretoLabels.value.map(label => {
+    return rawParetoData.value[label][clientCode] || 0;
+  });
+});
 
 const calculateCumulativePercentage = (data: number[]) => {
   const total = data.reduce((sum, value) => sum + value, 0)
+  if (total === 0) return data.map(() => 0);
   let cumulativeSum = 0
   return data.map(value => {
     cumulativeSum += value
@@ -81,37 +97,45 @@ const calculateCumulativePercentage = (data: number[]) => {
 const paretoCumulative = computed(() => calculateCumulativePercentage(paretoOccurrences.value))
 
 
-const paretoChartData: Ref<ChartData<'bar' | 'line', (number | null)[], string>> = computed(() => ({
-  labels: paretoLabels.value,
-  datasets: [
-    {
-      type: 'line',
-      label: '% Acumulado',
-      backgroundColor: 'transparent',
-      borderColor: '#000000',
-      borderWidth: 2,
-      data: paretoCumulative.value,
-      yAxisID: 'y1',
-      tension: 0,
-      pointRadius: 5,
-      pointBackgroundColor: '#FFFFFF',
-      pointBorderColor: '#000000',
-      pointBorderWidth: 2,
-      order: 1,
-    },
-    {
-      type: 'bar',
-      label: 'Ocorrências',
-      backgroundColor: '#1E293B',
-      borderColor: '#1E293B',
-      data: paretoOccurrences.value,
-      yAxisID: 'y',
-      order: 2,
-    },
-  ]
-}))
+const paretoChartData: Ref<ChartData<'bar' | 'line', (number | null)[], string>> = computed(() => {
+  return {
+    labels: paretoLabels.value,
+    datasets: [
+      {
+        type: 'line',
+        label: '% Acumulado',
+        backgroundColor: 'transparent',
+        borderColor: '#000000',
+        borderWidth: 2,
+        data: paretoCumulative.value,
+        yAxisID: 'y1',
+        tension: 0,
+        pointRadius: 5,
+        pointBackgroundColor: '#FFFFFF',
+        pointBorderColor: '#000000',
+        pointBorderWidth: 2,
+        order: 1,
+      },
+      {
+        type: 'bar',
+        label: 'Ocorrências',
+        backgroundColor: '#1E293B',
+        borderColor: '#1E293B',
+        data: paretoOccurrences.value,
+        yAxisID: 'y',
+        order: 2,
+      },
+    ]
+  }
+})
 
-const paretoChartOptions: ChartOptions<'bar'> = {
+const maxOccurrences = computed(() => {
+  const max = Math.max(...paretoOccurrences.value);
+  if (max === 0) return 1000;
+  return Math.ceil((max * 1.1) / 100) * 100;
+});
+
+const paretoChartOptions: ChartOptions<'bar'> = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
   layout: {
@@ -192,12 +216,12 @@ const paretoChartOptions: ChartOptions<'bar'> = {
       type: 'linear',
       position: 'left',
       min: 0,
-      max: 1000,
+      max: maxOccurrences.value,
       title: {
         display: false
       },
       ticks: {
-        stepSize: 100
+        stepSize: Math.max(100, Math.ceil(maxOccurrences.value / 10) / 10) * 10
       },
       grid: {
         color: 'rgba(0, 0, 0, 0.1)'
@@ -221,13 +245,7 @@ const paretoChartOptions: ChartOptions<'bar'> = {
       },
     }
   }
-} as ChartOptions<'bar'>;
-
-const selectedClient = ref({ name: 'Todos', code: 'ALL' });
-const clientOptions = ref([
-  { name: 'Todos', code: 'ALL' },
-  { name: 'Empresa Alpha', code: 'E1' },
-]);
+}))
 
 onMounted(() => {
 });
