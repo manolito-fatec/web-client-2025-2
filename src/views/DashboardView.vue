@@ -33,6 +33,8 @@
         <button class="nav-item">Admin</button>
       </nav>
     </header>
+    <NavigationBar></NavigationBar>
+
     <ChartDataFilter @applyFilters="applyFilters"></ChartDataFilter>
     <LoadingComponent v-if="loadingValue"></LoadingComponent>
     <div v-if="!loadingValue">
@@ -82,6 +84,7 @@ import {
   transformTicketsByProductData,
 } from '@/components/ChartService.ts'
 import { authService } from '@/api/AuthService.ts'
+import NavigationBar from '@/components/navigationBar/NavigationBar.vue'
 
 ChartJS.register(
   CategoryScale,
@@ -247,6 +250,10 @@ html {
 .nav-item.active {
   color: #000;
   border-bottom: 2px solid #3b82f6;
+}
+
+.header-content h1{
+    margin: 0;
 }
 
 .metrics-grid {
