@@ -1,38 +1,29 @@
 <template>
-    <div class="dashboard-container">
-        <header class="header">
-            <div class="header-content">
-                <h1>Pardal - Análise de Chamados</h1>
-            </div>
-            <nav class="navigation">
-                <button class="nav-item active">Dashboard</button>
-                <button class="nav-item">Insights</button>
-                <button class="nav-item">Chamados</button>
-                <button class="nav-item">Admin</button>
-            </nav>
-        </header>
-        <ChartDataFilter @applyFilters="applyFilters"></ChartDataFilter>
-        <LoadingComponent v-if="loadingValue"></LoadingComponent>
-        <div v-if="!loadingValue">
-            <div class="metrics-grid">
-                <Cards title="Total de Chamados" :value="totalOfTicketsValue"></Cards>
-                <Cards title="Tempo Médio de Resolução" :value="averageTimeValue"></Cards>
-                <Cards title="% Reincidência" :value="reOpenedValue"></Cards>
-                <Cards title="SLA Cumprido" :value="slaCompliancePercentualValue"></Cards>
-            </div>
-            <div class="charts-grid">
-                <div class="chart-card">
-                    <h2>Chamados por Produto</h2>
-                    <BarChart :data="productChartData" :options="chartOptions" />
-                </div>
-                <div class="chart-card">
-                    <h2>Chamados ao Longo do Tempo</h2>
-                    <LineChart :data="timeChartData" :options="chartOptions" />
-                </div>
-            </div>
-        </div>
+  <div class="dashboard-container">
+    <NavigationBar></NavigationBar>
 
+    <ChartDataFilter @applyFilters="applyFilters"></ChartDataFilter>
+    <LoadingComponent v-if="loadingValue"></LoadingComponent>
+    <div v-if="!loadingValue">
+      <div class="metrics-grid">
+        <Cards title="Total de Chamados" :value="totalOfTicketsValue"></Cards>
+        <Cards title="Tempo Médio de Resolução" :value="averageTimeValue"></Cards>
+        <Cards title="% Reincidência" :value="reOpenedValue"></Cards>
+        <Cards title="SLA Cumprido" :value="slaCompliancePercentualValue"></Cards>
+      </div>
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h2>Chamados por Produto</h2>
+          <BarChart :data="productChartData" :options="chartOptions" />
+        </div>
+        <div class="chart-card">
+          <h2>Chamados ao Longo do Tempo</h2>
+          <LineChart :data="timeChartData" :options="chartOptions" />
+        </div>
+      </div>
     </div>
+
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -60,6 +51,7 @@ import {
     transformTicketsByPeriod,
     transformTicketsByProductData,
 } from '@/components/ChartService.ts'
+import NavigationBar from '@/components/navigationBar/NavigationBar.vue'
 
 ChartJS.register(
     CategoryScale,
@@ -164,44 +156,8 @@ html {
     color: #333;
 }
 
-.header {
-    background-color: #fff;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 1rem;
-}
-
-.header-content {
-    display: flex;
-    margin: 0;
-    justify-content: space-between;
-    align-items: center;
-}
-
 .header-content h1{
     margin: 0;
-}
-
-.navigation {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1rem;
-    border-bottom: 1px solid #e0e0e0;
-}
-
-.nav-item {
-    background: none;
-    border: none;
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-    font-weight: bold;
-    color: #999;
-}
-
-.nav-item.active {
-    color: #000;
-    border-bottom: 2px solid #3b82f6;
 }
 
 .metrics-grid {
@@ -228,24 +184,6 @@ html {
 }
 .chart-card h2{
     margin: 0;
-}
-
-.loading-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 300px;
-    gap: 0.5rem;
-}
-
-.spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #e0e0e0;
-    border-top: 4px solid #3b82f6;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
