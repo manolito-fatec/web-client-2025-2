@@ -1,6 +1,8 @@
 import api from './axios/AxiosConfig.ts'
 import axios from 'axios'
 import type { LoginData } from '@/types/LoginData.ts'
+import { useAuthStore } from '@/api/session/auth.ts'
+import router from '@/router'
 
 export const authService = {
   verifyEmail(token:string) {
@@ -12,6 +14,9 @@ export const authService = {
   },
 
   logout() {
-    return api.post('/auth/logout')
+    useAuthStore().logout().then(() => {
+      router.push('/')
+    })
+    return
   }
 }

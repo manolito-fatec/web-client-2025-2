@@ -41,6 +41,22 @@ export const useAuthStore = defineStore('auth', {
         throw error;
       }
     },
+    async logout() {
+      try {
+        this.token = null;
+        this.userId = null;
+        this.configHeader.headers.Authorization = '';
+
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("userId");
+        sessionStorage.removeItem("role");
+
+        return true;
+      } catch (error) {
+        console.error("Logout failed:", error);
+        throw error;
+      }
+    }
   },
   getters: {
     isAuthenticated: (state) => !!state.token,
