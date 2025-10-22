@@ -23,6 +23,9 @@
 import { type Ref, ref } from 'vue'
 import router from '@/router'
 import { useAuthStore } from '@/api/session/auth.ts'
+import { useToast } from 'primevue/usetoast'
+
+const toast = useToast()
 
 const emit = defineEmits(['toggleSign'])
 
@@ -30,10 +33,20 @@ const email: Ref<string> = ref<string>('')
 const password: Ref<string> = ref<string>('')
 const isLoading: Ref<boolean> = ref<boolean>(false)
 
+const showError = (errorSum: string, errorMsg: string) => {
+  toast.add({ severity: 'error', summary: errorSum, detail: errorMsg, life: 3000 });
+};
+
 function handleLogin() {
   isLoading.value = true
-  useAuthStore().loginAndStore({email: email.value, password: password.value}).then(() => {
-    router.push('/home')
+  useAuthStore().loginAndStore({email: email.value, password: password.value}).then( logged => {
+    console.log(logged)
+    if (logged) {
+      router.push('/home')
+    } else {
+      showError('Erro ao realizar login', 'Houve um erro ao logar. Por favor, revise os dados de acesso')
+      isLoading.value = false
+    }
   }).catch(() => {
     isLoading.value = false
   })
