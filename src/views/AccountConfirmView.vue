@@ -58,7 +58,7 @@ onMounted(async () => {
       <div class="icon">✗</div>
       <h2>Algo deu errado</h2>
       <p>{{ error }}</p>
-      <router-link to="/login" class="btn">Voltar ao Login</router-link>
+      <router-link to="/" class="btn">Voltar ao Login</router-link>
     </div>
   </div>
 </template>
