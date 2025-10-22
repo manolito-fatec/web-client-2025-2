@@ -252,10 +252,6 @@ html {
   border-bottom: 2px solid #3b82f6;
 }
 
-.header-content h1{
-    margin: 0;
-}
-
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
