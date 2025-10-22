@@ -1,7 +1,7 @@
-import axios from 'axios';
 import type { Product } from '@/types/Product'
 import type { Company } from '@/types/Company'
 import type { ApiResponse } from '@/types/PaginatedInterfaces/ApiResponse'
+import api from '@/api/axios/AxiosConfig.ts'
 
 const BASE_URL = 'http://localhost:8080/';
 
@@ -22,7 +22,7 @@ export async function fetchFilterOptions(pageSize: number = 10): Promise<{ allPr
 
   while (hasMorePages) {
     try {
-      const response = await axios.get<ApiResponse>(url, {
+      const response = await api.get<ApiResponse>(url, {
         params: {
           page: currentPage,
           size: pageSize
