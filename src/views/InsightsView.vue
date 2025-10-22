@@ -23,7 +23,7 @@
       <p class="chart-subtitle-pareto">Pareto por Subcategoria (Ocorrências x % Acumulado)</p>
 
       <div class="pareto-chart-wrapper">
-        <BarChart :data="paretoChartData" :options="paretoChartOptions" />
+        <VueChart type="bar" :data="paretoChartData" :options="paretoChartOptions" />
       </div>
     </div>
   </div>
@@ -52,8 +52,9 @@ import {
   PointElement,
   Title,
   Tooltip,
+  type TooltipItem,
 } from 'chart.js'
-import { Bar as BarChart } from 'vue-chartjs'
+import { Chart as VueChart } from 'vue-chartjs'
 
 import { fetchFilterOptions } from '@/api/FiltersApi'
 
@@ -178,7 +179,7 @@ const calculateCumulativePercentage = (data: number[]) => {
 
 const paretoCumulative = computed(() => calculateCumulativePercentage(paretoOccurrences.value))
 
-const paretoChartData: Ref<ChartData<'bar' | 'line', (number | null)[], string>> = computed(() => {
+const paretoChartData = computed<ChartData<'bar' | 'line', (number | null)[], string>>(() => {
   return {
     labels: paretoLabels.value,
     datasets: [
@@ -231,7 +232,7 @@ const suggestedMinOccurrences = computed(() => {
 })
 
 
-const paretoChartOptions: ChartOptions<'bar'> = computed(() => ({
+const paretoChartOptions = computed<ChartOptions<'bar'>>(() => ({
   responsive: true,
   maintainAspectRatio: false,
   layout: {
@@ -251,7 +252,7 @@ const paretoChartOptions: ChartOptions<'bar'> = computed(() => ({
     },
     tooltip: {
       callbacks: {
-        label: function (context) {
+        label: function (context: TooltipItem<'bar' | 'line'>) {
           let label = context.dataset.label || ''
           if (context.parsed.y !== null) {
             if (context.dataset.yAxisID === 'y1') {
@@ -262,8 +263,8 @@ const paretoChartOptions: ChartOptions<'bar'> = computed(() => ({
           }
           return label
         },
-        title: function (context) {
-          const barValue = context.find((c) => c.dataset.type === 'bar')?.parsed.y || 0
+        title: function (context: TooltipItem<'bar' | 'line'>[]) {
+          const barValue = context.find((c: TooltipItem<'bar' | 'line'>) => c.dataset.type === 'bar')?.parsed.y || 0
           return `${context[0].label}: ${barValue}`
         },
       },
