@@ -174,7 +174,6 @@ const logoutHandler = () => {
   isDropdownOpen.value = false // Fecha o dropdown após clicar
 }
 
-// Fecha o dropdown se clicar fora dele
 const handleClickOutside = (event: MouseEvent) => {
   if (userMenuRef.value && !userMenuRef.value.contains(event.target as Node)) {
     isDropdownOpen.value = false

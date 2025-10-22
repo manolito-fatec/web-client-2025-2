@@ -1,5 +1,4 @@
 import api from './axios/AxiosConfig.ts'
-import axios from 'axios'
 import type { LoginData } from '@/types/LoginData.ts'
 import { useAuthStore } from '@/api/session/auth.ts'
 import router from '@/router'

@@ -1,13 +1,10 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { AxiosError } from 'axios'
 import { authService } from '@/api/AuthService.ts'
-import { useAuthStore } from '@/api/session/auth.ts'
 
 const route = useRoute()
 const router = useRouter()
-const auth = useAuthStore()
 
 const loading = ref(true)
 const success = ref(false)
@@ -17,24 +14,16 @@ onMounted(async () => {
   try {
     const token:string = route.params.token.toString()
 
-    const response = await authService.verifyEmail(token)
+    await authService.verifyEmail(token).then(() => {
+      success.value = true
 
-    success.value = true
-    auth.user = response.data.user
+      setTimeout(() => {
+        router.push('/')
+      }, 2000)
+    })
 
-    setTimeout(() => {
-      router.push('/')
-    }, 2000)
-
-  } catch (err: unknown) {
-    const axiosError = err as AxiosError
-    if (axiosError.response?.status === 400) {
-      error.value = 'Token inválido ou expirado'
-    } else if (axiosError.response?.status === 404) {
-      error.value = 'Usuário não encontrado'
-    } else {
-      error.value = axiosError.response?.data?.message || 'Erro ao validar email'
-    }
+  } catch (error: unknown) {
+    throw error
   } finally {
     loading.value = false
   }
