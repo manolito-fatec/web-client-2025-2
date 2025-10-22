@@ -6,7 +6,10 @@ const api = axios.create({
 })
 
 api.interceptors.request.use(config => {
-  config.headers.Authorization = `Bearer ${useAuthStore().token}`;
+  if (useAuthStore().token !== null) {
+    config.headers.Authorization = `Bearer ${useAuthStore().token}`;
+    return config;
+  }
   return config;
 })
 

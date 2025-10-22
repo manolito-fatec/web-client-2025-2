@@ -1,4 +1,5 @@
 import api from './axios/AxiosConfig.ts'
+import axios from 'axios'
 import type { LoginData } from '@/types/LoginData.ts'
 
 export const authService = {
