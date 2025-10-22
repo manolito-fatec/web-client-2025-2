@@ -6,26 +6,34 @@
     </p>
 
     <div class="field">
-      <label>E-mail</label>
-      <input placeholder="seunome@pardal.com" v-model="email"/>
+      <label>
+        E-mail
+        <input placeholder="seunome@pardal.com" v-model="email"/>
+      </label>
       <span class="error-text" v-if="!isPardalEmailValid">{{emailErrorMsg}}</span>
     </div>
 
     <div class="field">
-      <label>Nome completo</label>
-      <input placeholder="Seu nome completo" v-model="name"/>
+      <label>
+        Nome completo
+        <input placeholder="Seu nome completo" v-model="name"/>
+      </label>
       <span class="error-text" v-if="!isNameValid">{{nameErrorMsg}}</span>
     </div>
 
     <div class="field">
-      <label>Telefone</label>
-      <input placeholder="(00)00000-0000" v-model="phone" @input="handlePhoneInput"/>
+      <label>
+        Telefone
+        <input placeholder="(00)00000-0000" v-model="phone" @input="handlePhoneInput"/>
+      </label>
       <span class="error-text" v-if="!isPhoneValid">{{phoneErrorMsg}}</span>
     </div>
 
     <div class="field">
-      <label>Senha</label>
-      <input placeholder="*************" type="password" v-model="password"/>
+      <label>
+        Senha
+        <input placeholder="*************" type="password" v-model="password"/>
+      </label>
       <span class="error-text" v-if="!isPasswordValid">{{passwordErrorMsg}}</span>
     </div>
 
@@ -60,7 +68,7 @@ const name: Ref<string> = ref<string>('')
 const phone: Ref<string> = ref<string>('')
 const password: Ref<string> = ref<string>('')
 
-const pardalRegex =  /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+const pardalRegex = /^[\w.-]+@[\w.-]+\.\w+$/
 const nameRegex = /^[a-záàâãéèêíïóôõöúçñ\s]{3,}$/i
 const phoneRegex = /^\(\d{2}\)\d{5}-\d{4}$/
 const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/
@@ -129,7 +137,7 @@ const isFormValid = computed(() => {
 })
 
 function handlePhoneInput() {
-  let value = phone.value.replace(/\D/g, '')
+  let value = phone.value.replaceAll(/\D/g, '')
 
   if (value.length > 11) {
     value = value.slice(0, 11)
@@ -173,6 +181,9 @@ function handleSignIn() {
   font-size: 12px;
   font-family: Arial, sans-serif;
   color: #6b7280;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .field input {
@@ -183,10 +194,18 @@ function handleSignIn() {
   padding: 0 0.75rem;
   outline: none;
   transition: box-shadow 0.2s;
+  font-size: 14px; /* input costuma ter fonte maior que a label */
+  color: #000;
 }
 
 .field input:focus {
   box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.4);
+}
+
+.field input:disabled {
+  background-color: #f9fafb;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .email-sent h3 {

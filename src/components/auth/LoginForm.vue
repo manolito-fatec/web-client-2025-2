@@ -1,12 +1,16 @@
 <template>
   <div class="login-form">
     <div class="field">
-      <label>E-mail</label>
-      <input placeholder="seunome@pardal.com" v-model="email" :disabled="isLoading" />
+      <label>
+        E-mail
+        <input placeholder="seunome@pardal.com" v-model="email" :disabled="isLoading" />
+      </label>
     </div>
     <div class="field">
-      <label>Senha</label>
-      <input type="password" placeholder="********" v-model="password" :disabled="isLoading" />
+      <label>
+        Senha
+        <input type="password" placeholder="********" v-model="password" :disabled="isLoading" />
+      </label>
     </div>
     <button class="btn primary" @click="handleLogin" :disabled="isLoading">
       <span v-if="!isLoading">Entrar</span>
@@ -66,6 +70,9 @@ function handleLogin() {
   font-size: 12px;
   font-family: Arial, sans-serif;
   color: #6b7280;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .field input {
@@ -76,6 +83,8 @@ function handleLogin() {
   padding: 0 0.75rem;
   outline: none;
   transition: box-shadow 0.2s;
+  font-size: 14px; /* input costuma ter fonte maior que a label */
+  color: #000;
 }
 
 .field input:focus {
