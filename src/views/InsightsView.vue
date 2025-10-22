@@ -43,6 +43,7 @@ import {
   BarElement,
   CategoryScale,
   Chart as ChartJS,
+  type Chart,
   type ChartData,
   type ChartOptions,
   Legend,
@@ -54,8 +55,31 @@ import {
 } from 'chart.js'
 import { Bar as BarChart } from 'vue-chartjs'
 
-import annotationPlugin from 'chartjs-plugin-annotation'
 import { fetchFilterOptions } from '@/api/FiltersApi'
+
+const eightyPercentLine = {
+  id: 'eightyPercentLine',
+  afterDraw(chart: Chart) {
+    const { ctx, chartArea, scales } = chart
+
+    const yScale = scales.y1
+
+    if (!yScale) return
+
+    const yPosition = yScale.getPixelForValue(80)
+
+    ctx.save()
+    ctx.beginPath()
+    ctx.strokeStyle = 'rgb(255, 99, 132)'
+    ctx.lineWidth = 2
+    ctx.setLineDash([6, 6])
+
+    ctx.moveTo(chartArea.left, yPosition)
+    ctx.lineTo(chartArea.right, yPosition)
+    ctx.stroke()
+    ctx.restore()
+  },
+}
 
 ChartJS.register(
   CategoryScale,
@@ -66,7 +90,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  annotationPlugin,
+  eightyPercentLine,
 )
 
 const selectedClient = ref<FilterCompany>({ name: 'Todos', code: 'ALL' })
@@ -241,34 +265,6 @@ const paretoChartOptions: ChartOptions<'bar'> = computed(() => ({
         title: function (context) {
           const barValue = context.find((c) => c.dataset.type === 'bar')?.parsed.y || 0
           return `${context[0].label}: ${barValue}`
-        },
-      },
-    },
-    annotation: {
-      annotations: {
-        line80percent: {
-          type: 'line',
-          value: 80,
-          scaleID: 'y1',
-          borderColor: 'rgb(255, 99, 132)',
-          borderWidth: 2,
-          borderDash: [6, 6],
-          drawTime: 'afterDatasetsDraw',
-          label: {
-            display: false,
-            content: '80%',
-            backgroundColor: 'rgb(255, 99, 132)',
-            borderRadius: 6,
-            padding: 4,
-            font: {
-              color: 'white',
-              size: 12,
-              weight: 'bold',
-            },
-            position: 'end',
-            xAdjust: 0,
-            yAdjust: -12,
-          },
         },
       },
     },
