@@ -16,6 +16,5 @@ export const authService = {
     useAuthStore().logout().then(() => {
       router.push('/')
     })
-    return
   }
 }
