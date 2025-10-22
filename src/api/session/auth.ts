@@ -21,7 +21,7 @@ export const useAuthStore = defineStore('auth', {
         });
 
         this.token = response.data.token;
-        setSessionItem("token", this.token!);
+        setSessionItem("token", this.token);
         const decodedToken = JSON.parse(atob(response.data.token.split(".")[1]));
         console.log(decodedToken);
         const userId = decodedToken.userId;

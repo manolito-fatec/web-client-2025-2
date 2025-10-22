@@ -1,4 +1,7 @@
-export function setSessionItem(keyName: string, value: string) {
+export function setSessionItem(keyName: string, value: string|null) {
+  if (!value) {
+    return;
+  }
   sessionStorage.setItem(keyName, value);
 }
 
