@@ -108,25 +108,18 @@ watch(() => props.insights, () => {
   font-weight: 500;
 }
 
-/* --- ALTERAÇÕES DE ESTILO --- */
-
-/* 1. REMOVIDO: .card-header-with-pagination (Não existe mais) */
-
-/* 2. ESTILO DA PAGINAÇÃO RESTAURADO (com borda e margem) */
 .pagination-controls-discreet {
   display: flex;
-  justify-content: flex-end; /* Alinha os botões e texto à direita */
+  justify-content: flex-end;
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
   
-  /* Adicionando de volta a borda e o espaçamento */
   padding-top: 1rem;
   margin-top: 1.5rem;
-  border-top: 1px solid #eee; /* Linha divisória */
+  border-top: 1px solid #eee;
 }
 
-/* ... (Estilos .page-info e .btn-page-arrow sem alteração) ... */
 .page-info {
   color: #555;
   font-weight: 500;
