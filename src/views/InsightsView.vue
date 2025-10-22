@@ -16,7 +16,9 @@
       </div>
     </div>
 
-    <div class="chart-card-full">
+    <LoadingComponent v-if="loadingValue"></LoadingComponent>
+
+    <div v-if="!loadingValue" class="chart-card-full">
       <h2 class="chart-title-main">Análise de Causas Raízes</h2>
       <p class="chart-subtitle-pareto">Pareto por Subcategoria (Ocorrências x % Acumulado)</p>
 
@@ -28,25 +30,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, type Ref } from 'vue'
+import { computed, onMounted, ref, type Ref, watch } from 'vue'
 import NavigationBar from '@/components/navigationBar/NavigationBar.vue'
 import Dropdown from 'primevue/dropdown'
+import { getRootCauseAnalysis } from '@/api/RootCauseAnalysisApi'
+import type { RootCauseAnalysisData } from '@/types/RootCauseAnalysisResponse'
+import LoadingComponent from '@/components/LoadingComponent.vue'
+import type { FilterCompany } from '@/types/Company'
+import type { SelectListOption } from '@/types/SelectListOption'
+
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
   BarElement,
+  CategoryScale,
+  Chart as ChartJS,
+  type ChartData,
+  type ChartOptions,
+  Legend,
+  LinearScale,
   LineElement,
   PointElement,
   Title,
   Tooltip,
-  Legend,
-  type ChartData,
-  type ChartOptions,
 } from 'chart.js'
 import { Bar as BarChart } from 'vue-chartjs'
 
-import annotationPlugin from 'chartjs-plugin-annotation';
+import annotationPlugin from 'chartjs-plugin-annotation'
+import { fetchFilterOptions } from '@/api/FiltersApi'
 
 ChartJS.register(
   CategoryScale,
@@ -57,45 +66,93 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  annotationPlugin
+  annotationPlugin,
 )
 
-const selectedClient = ref({ name: 'Todos', code: 'ALL' });
-const clientOptions = ref([
-  { name: 'Todos', code: 'ALL' },
-  { name: 'Empresa Alpha', code: 'E1' },
-  { name: 'Empresa Beta', code: 'E2' },
-]);
+const selectedClient = ref<FilterCompany>({ name: 'Todos', code: 'ALL' })
+const clientOptions: Ref<FilterCompany[]> = ref([{ name: 'Todos', code: 'ALL' }])
+const loadingValue: Ref<boolean> = ref(false)
+const rawParetoData: Ref<RootCauseAnalysisData> = ref({})
 
-const rawParetoData = ref({
-  'Login/Senha': { ALL: 834, E1: 500, E2: 334 },
-  'Faturamento': { ALL: 612, E1: 200, E2: 412 },
-  'Instabilidade no Produto Y': { ALL: 451, E1: 300, E2: 151 },
-  'Funcionalidade Y': { ALL: 320, E1: 150, E2: 170 },
-  'Relatórios': { ALL: 298, E1: 50, E2: 248 },
-});
+const fetchParetoData = async (clientCode: string) => {
+  if (clientCode !== selectedClient.value.code) {
+    loadingValue.value = true
+  }
 
-const paretoLabels = computed(() => Object.keys(rawParetoData.value));
+  try {
+    const clientIdParam = clientCode === 'ALL' ? null : clientCode
 
-const paretoOccurrences = computed(() => {
-  const clientCode = selectedClient.value.code;
-  return paretoLabels.value.map(label => {
-    return rawParetoData.value[label][clientCode] || 0;
-  });
-});
+    const apiData = await getRootCauseAnalysis(clientIdParam)
+    rawParetoData.value = apiData || {}
+  } catch (error) {
+    console.error('Error fetching Pareto data:', error)
+    rawParetoData.value = {}
+  } finally {
+    loadingValue.value = false
+  }
+}
+
+const loadClientOptions = async () => {
+  try {
+    const filterData = await fetchFilterOptions(3)
+    const allCompanies = filterData.allCompanies as unknown as SelectListOption[]
+
+    const companyOptions: FilterCompany[] = allCompanies.map(
+      (company) => ({
+        name: company.name,
+        code: company.id.toString(),
+      }),
+    )
+
+    clientOptions.value = [{ name: 'Todos', code: 'ALL' }, ...companyOptions]
+  } catch (error) {
+    console.error('Error fetching filter options for clients:', error)
+  }
+}
+
+const sortedParetoData = computed(() => {
+  const clientCode = selectedClient.value.code
+  const data = rawParetoData.value
+
+  if (Object.keys(data).length === 0) return []
+
+  const dataArray = Object.entries(data).map(([label, counts]) => {
+    let occurrenceValue = 0
+
+    if (clientCode === 'ALL') {
+      if (counts && typeof counts === 'object') {
+        occurrenceValue = Object.values(counts).reduce((sum, value) => sum + value, 0)
+      }
+    } else {
+      occurrenceValue = (counts as Record<string, number>)?.[clientCode] || 0
+    }
+
+    return {
+      label,
+      occurrence: occurrenceValue,
+    }
+  })
+
+  const filteredData = dataArray.filter((item) => item.occurrence > 0)
+  filteredData.sort((a, b) => b.occurrence - a.occurrence)
+
+  return filteredData
+})
+
+const paretoLabels = computed(() => sortedParetoData.value.map((item) => item.label))
+const paretoOccurrences = computed(() => sortedParetoData.value.map((item) => item.occurrence))
 
 const calculateCumulativePercentage = (data: number[]) => {
   const total = data.reduce((sum, value) => sum + value, 0)
-  if (total === 0) return data.map(() => 0);
+  if (total === 0) return data.map(() => 0)
   let cumulativeSum = 0
-  return data.map(value => {
+  return data.map((value) => {
     cumulativeSum += value
     return (cumulativeSum / total) * 100
   })
 }
 
 const paretoCumulative = computed(() => calculateCumulativePercentage(paretoOccurrences.value))
-
 
 const paretoChartData: Ref<ChartData<'bar' | 'line', (number | null)[], string>> = computed(() => {
   return {
@@ -125,23 +182,38 @@ const paretoChartData: Ref<ChartData<'bar' | 'line', (number | null)[], string>>
         yAxisID: 'y',
         order: 2,
       },
-    ]
+    ],
   }
 })
 
 const maxOccurrences = computed(() => {
-  const max = Math.max(...paretoOccurrences.value);
-  if (max === 0) return 1000;
-  return Math.ceil((max * 1.1) / 100) * 100;
-});
+  const max = Math.max(...paretoOccurrences.value)
+  if (max === 0) return 1000
+  return Math.ceil((max * 1.05) / 100) * 100
+})
+
+const suggestedMinOccurrences = computed(() => {
+  const min = Math.min(...paretoOccurrences.value.filter(v => v > 0))
+  if (min === Infinity || min === 0) return 0
+
+  const suggestedMin = Math.floor(min / 100) * 100
+
+  const max = Math.max(...paretoOccurrences.value)
+  if ((max - min) > 200) {
+    return 0
+  }
+
+  return suggestedMin > 0 ? suggestedMin : 0
+})
+
 
 const paretoChartOptions: ChartOptions<'bar'> = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
   layout: {
     padding: {
-      top: 20
-    }
+      top: 30,
+    },
   },
   plugins: {
     legend: {
@@ -150,27 +222,27 @@ const paretoChartOptions: ChartOptions<'bar'> = computed(() => ({
       labels: {
         reverse: true,
         boxWidth: 10,
-        padding: 10
-      }
+        padding: 10,
+      },
     },
     tooltip: {
       callbacks: {
-        label: function(context) {
-          let label = context.dataset.label || '';
+        label: function (context) {
+          let label = context.dataset.label || ''
           if (context.parsed.y !== null) {
             if (context.dataset.yAxisID === 'y1') {
-              label += `: ${context.parsed.y.toFixed(1)}%`;
+              label += `: ${context.parsed.y.toFixed(1)}%`
             } else {
-              label += `: ${context.parsed.y}`;
+              label += `: ${context.parsed.y}`
             }
           }
-          return label;
+          return label
         },
-        title: function(context) {
-          const barValue = context[1].parsed.y;
-          return `${context[0].label}: ${barValue}`;
-        }
-      }
+        title: function (context) {
+          const barValue = context.find((c) => c.dataset.type === 'bar')?.parsed.y || 0
+          return `${context[0].label}: ${barValue}`
+        },
+      },
     },
     annotation: {
       annotations: {
@@ -198,34 +270,37 @@ const paretoChartOptions: ChartOptions<'bar'> = computed(() => ({
             yAdjust: -12,
           },
         },
-      }
-    }
+      },
+    },
   },
   scales: {
     x: {
       type: 'category',
       grid: {
-        display: false
+        display: false,
       },
       ticks: {
-        maxRotation: 0,
-        minRotation: 0
-      }
+        maxRotation: 30,
+        minRotation: 0,
+      },
     },
     y: {
       type: 'linear',
       position: 'left',
-      min: 0,
+      min: suggestedMinOccurrences.value,
       max: maxOccurrences.value,
       title: {
-        display: false
+        display: false,
       },
       ticks: {
-        stepSize: Math.max(100, Math.ceil(maxOccurrences.value / 10) / 10) * 10
+        stepSize:
+          maxOccurrences.value === 0
+            ? 100
+            : Math.max(10, Math.ceil((maxOccurrences.value - suggestedMinOccurrences.value) / 10)),
       },
       grid: {
-        color: 'rgba(0, 0, 0, 0.1)'
-      }
+        color: 'rgba(0, 0, 0, 0.1)',
+      },
     },
     y1: {
       type: 'linear',
@@ -233,9 +308,9 @@ const paretoChartOptions: ChartOptions<'bar'> = computed(() => ({
       min: 0,
       max: 100,
       ticks: {
-        callback: function(value: any) {
-          return value + '%';
-        }
+        callback: function (value: any) {
+          return value + '%'
+        },
       },
       border: {
         display: false,
@@ -243,12 +318,22 @@ const paretoChartOptions: ChartOptions<'bar'> = computed(() => ({
       grid: {
         drawOnChartArea: false,
       },
-    }
-  }
+    },
+  },
 }))
 
-onMounted(() => {
-});
+watch(
+  selectedClient,
+  (newClient) => {
+    fetchParetoData(newClient.code)
+  },
+  { deep: true },
+)
+
+onMounted(async () => {
+  await loadClientOptions()
+  await fetchParetoData(selectedClient.value.code)
+})
 </script>
 
 <style scoped>
@@ -269,33 +354,18 @@ onMounted(() => {
   flex-direction: column;
 }
 
-.section-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 1.5rem;
-}
-
-.prediction-card {
-  background-color: #fff;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2.5rem;
-}
-
 .chart-card-full {
   background-color: #fff;
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  height: 30rem;
+  min-height: 35rem;
   display: flex;
   flex-direction: column;
 
-  max-width: 1000px;
-  width: 90%;
+  width: 100%;
   margin-right: auto;
+  margin-left: auto;
 }
 
 .chart-title-main {
@@ -320,7 +390,7 @@ onMounted(() => {
 .pareto-chart-wrapper > canvas {
   position: absolute;
   width: 100%;
-  height: 90rem;
+  height: 100%;
 }
 
 .p-field {
@@ -338,36 +408,5 @@ onMounted(() => {
 .client-dropdown {
   width: 15rem;
   max-width: 100%;
-}
-
-.prediction-description {
-  color: #555;
-  margin-top: 0;
-  margin-bottom: 1rem;
-}
-
-.prediction-list {
-  list-style: none;
-  padding: 0;
-}
-
-.prediction-list li {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.7rem;
-  color: #333;
-}
-
-.indicator {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-left: 0.2rem;
-}
-
-.high-risk {
-  background-color: #ef4444;
 }
 </style>
