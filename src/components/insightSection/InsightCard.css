@@ -1,0 +1,51 @@
+.insight-card-section {
+  margin-bottom: 1.5rem;
+}
+
+.insight-card-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.insight-card-body {
+  background-color: #ffffff;
+  
+  border: 1px solid #e5e7eb;
+  
+  border-radius: 1rem;
+  
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04), 0 6px 24px rgba(16, 24, 40, 0.06);
+  
+  padding: 1.25rem;
+}
+
+
+.insight-card-list {
+  list-style-type: disc;
+  margin-left: 1.25rem;
+  font-size: 14px;
+  line-height: 1.5rem;
+}
+
+.insight-card-item + .insight-card-item {
+  margin-top: 0.75rem;
+}
+
+.insight-card-item strong {
+  font-weight: 600;
+}
+
+.insight-card-item em {
+  font-style: italic;
+}
+
+.insight-card-percentage {
+  color: #6b7280;
+}
+
+.insight-card-section {
+  margin-top: 1.5rem;
+  
+  margin-bottom: 1.5rem; 
+}
