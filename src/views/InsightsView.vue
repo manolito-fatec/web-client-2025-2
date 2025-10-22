@@ -125,7 +125,7 @@ const loadClientOptions = async () => {
     const companyOptions: FilterCompany[] = allCompanies.map(
       (company) => ({
         name: company.name,
-        code: company.id.toString(),
+        code: company.code
       }),
     )
 
