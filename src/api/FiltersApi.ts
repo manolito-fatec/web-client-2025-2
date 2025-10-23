@@ -3,16 +3,13 @@ import type { Company } from '@/types/Company'
 import type { ApiResponse } from '@/types/PaginatedInterfaces/ApiResponse'
 import api from '@/api/axios/AxiosConfig.ts'
 
-const BASE_URL = 'http://localhost:8080/';
-
-
 /**
  * Fetch all companies and products
  * @param pageSize - Number of itens per page.
  * @returns an object that has the arrays of all products and all companies.
  */
 export async function fetchFilterOptions(pageSize: number = 10): Promise<{ allProducts: Product[], allCompanies: Company[] }> {
-  const url = BASE_URL + 'api/metrics';
+  const url = 'api/metrics';
 
   const allProducts: Product[] = [];
   const allCompanies: Company[] = [];

@@ -13,4 +13,4 @@ export async function getChartDate(request:FilterOptions)
   }catch (error) {
     throw error;
   }
-};
+}

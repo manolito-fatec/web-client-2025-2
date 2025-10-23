@@ -90,12 +90,14 @@ function subtractMonth(dateData: Date, numberOfMonths: number) {
 }
 
 const resetFilters = () => {
-  dateStart.value = subtractMonth(new Date(), 1)
-  dateEnd.value = new Date()
-  selectedClient.value = 'all'
-  selectedProduct.value = 'all'
-  periods.value = 'MONTH'
-  applyFilters();
+  const filters: FilterOptions = {
+    productId: '',
+    companyId: '',
+    startDate: '',
+    endDate: '',
+    periods: 'MONTH',
+  }
+  emit('applyFilters', filters);
 }
 
 const applyFilters = () => {
