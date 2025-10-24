@@ -1,7 +1,20 @@
 <template>
   <div class="users-table">
+    <div class="search-container" style="margin-bottom: 1rem;">
+      <IconField>
+        <InputIcon>
+          <i class="pi pi-search" />
+        </InputIcon>
+        <InputText
+          v-model="searchEmail"
+          placeholder="Pesquisar por e-mail"
+          style="width: 100%; max-width: 400px;"
+        />
+      </IconField>
+    </div>
+
     <DataTable
-      :value="props.appUsers"
+      :value="filteredUsers"
       paginator
       :rows="5"
       :rowsPerPageOptions="[5, 10, 20, 50]"
@@ -38,11 +51,14 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
 import Select from 'primevue/select'
+import InputText from 'primevue/inputtext'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
 
 import type { AppUserTable } from '@/types/ObjectTypes/AppUserTable.ts'
 import api from '@/api/axios/AxiosConfig.ts'
 import { useToast } from 'primevue/usetoast'
-import { onMounted, ref, type Ref } from 'vue'
+import { onMounted, ref, computed, type Ref } from 'vue'
 import { getUserTableData } from '@/components/UsersTable/UserTableUtils.ts'
 
 const toast = useToast()
@@ -51,8 +67,19 @@ const props = defineProps<{
 }>()
 
 const appUsersInTable: Ref<AppUserTable[]> = ref<AppUserTable[]>([])
+const searchEmail = ref('')
 
 const roleOptions = ['Admin', 'Operator', 'Manager']
+
+// Computed property para filtrar usuários
+const filteredUsers = computed(() => {
+  if (!searchEmail.value) {
+    return appUsersInTable.value
+  }
+  return appUsersInTable.value.filter(user =>
+    user.email.toLowerCase().includes(searchEmail.value.toLowerCase())
+  )
+})
 
 function updateUsers () {
   appUsersInTable.value = getUserTableData()
@@ -103,7 +130,7 @@ const onRoleChange = (user: AppUserTable) => {
 }
 
 onMounted(() => {
-  appUsersInTable.value = props.appUsers
+  updateUsers()
 })
 
 </script>
