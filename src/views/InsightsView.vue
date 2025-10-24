@@ -186,7 +186,6 @@ onMounted(async () => {
 }
 
 .sla-prediction-wrapper {
-  width: 30rem;
   margin-bottom: 2.5rem;
   max-width: 100%;
 }
