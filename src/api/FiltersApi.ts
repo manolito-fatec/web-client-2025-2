@@ -1,10 +1,7 @@
-import axios from 'axios';
 import type { Product } from '@/types/Product'
 import type { Company } from '@/types/Company'
 import type { ApiResponse } from '@/types/PaginatedInterfaces/ApiResponse'
-
-const BASE_URL = 'http://localhost:8080/';
-
+import api from '@/api/axios/AxiosConfig.ts'
 
 /**
  * Fetch all companies and products
@@ -12,7 +9,7 @@ const BASE_URL = 'http://localhost:8080/';
  * @returns an object that has the arrays of all products and all companies.
  */
 export async function fetchFilterOptions(pageSize: number = 10): Promise<{ allProducts: Product[], allCompanies: Company[] }> {
-  const url = BASE_URL + 'api/metrics';
+  const url = 'api/metrics';
 
   const allProducts: Product[] = [];
   const allCompanies: Company[] = [];
@@ -22,7 +19,7 @@ export async function fetchFilterOptions(pageSize: number = 10): Promise<{ allPr
 
   while (hasMorePages) {
     try {
-      const response = await axios.get<ApiResponse>(url, {
+      const response = await api.get<ApiResponse>(url, {
         params: {
           page: currentPage,
           size: pageSize

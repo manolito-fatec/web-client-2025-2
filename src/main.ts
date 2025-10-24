@@ -9,6 +9,7 @@ import Aura from '@primeuix/themes/aura'
 import App from './App.vue'
 import router from './router'
 import {definePreset} from "@primeuix/themes";
+import ToastService from 'primevue/toastservice';
 
 const app = createApp(App)
 const pardalPreset = definePreset(Aura, {
@@ -34,6 +35,7 @@ const pardalPreset = definePreset(Aura, {
 
 app.use(createPinia())
 app.use(router)
+app.use(ToastService);
 app.use(PrimeVue, {
   theme: {
     preset: pardalPreset,

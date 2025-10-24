@@ -1,7 +1,6 @@
-import axios from 'axios';
 import type { InsightApiResponse, ProductInsight } from '@/components/types/InsightType/Insight';
+import api from '@/api/axios/AxiosConfig.ts'
 
-const BASE_URL = 'http://localhost:8080/';
 
 /**
  * Busca os insights de produto para um determinado cliente.
@@ -9,10 +8,10 @@ const BASE_URL = 'http://localhost:8080/';
  * @returns Uma promessa que resolve para um array de ProductInsight.
  */
 export async function fetchProductInsights(customerId: number): Promise<InsightApiResponse> {
-  const url = `${BASE_URL}api/insights/data`;
+  const url = `api/insights/data`;
 
   try {
-    const response = await axios.get<InsightApiResponse>(url, {
+    const response = await api.get<InsightApiResponse>(url, {
       params: {
         customerId
       }
