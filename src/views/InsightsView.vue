@@ -62,7 +62,7 @@ import { fetchFilterOptions } from '@/api/FiltersApi'
 import type { RootCauseAnalysisData } from '@/types/RootCauseAnalysisResponse'
 import type { FilterCompany } from '@/types/Company'
 import type { SelectListOption } from '@/types/SelectListOption'
-import type { ProductInsight } from '@/components/types/InsightType/Insight'
+import type { ProductInsight } from '@/types/InsightType/Insight'
 
 
 const eightyPercentLine = {
