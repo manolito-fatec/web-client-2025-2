@@ -1,4 +1,4 @@
-import type { InsightApiResponse, ProductInsight } from '@/components/types/InsightType/Insight';
+import type { InsightApiResponse, ProductInsight } from '@/types/InsightType/Insight';
 import api from '@/api/axios/AxiosConfig.ts'
 
 

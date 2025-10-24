@@ -5,15 +5,20 @@
     <div class="filter-card">
       <div class="p-field">
         <label for="client-filter">Cliente</label>
-        <Dropdown id="client-filter" v-model="selectedClient" :options="clientOptions" optionLabel="name"
-         class="client-dropdown" />
+        <Dropdown
+          id="client-filter"
+          v-model="selectedClient"
+          :options="clientOptions"
+          optionLabel="name"
+          class="client-dropdown"
+        />
       </div>
     </div>
-   <LoadingComponent v-show="insightLoading"/>
-   <div v-show="!insightsData.length" class="empty-insights-message">
-          <p>Selecione um cliente específico no filtro para ver os insights do produto.</p>
-   </div>
-   <div v-if="insightsData.length && forecasterDate.length" >
+    <LoadingComponent v-show="insightLoading" />
+    <div v-show="!insightsData.length" class="empty-insights-message">
+      <p>Selecione um cliente específico no filtro para ver os insights do produto.</p>
+    </div>
+    <div v-if="insightsData.length && forecasterDate.length">
       <p class="forecaster-card-title">Previsão de sazonalidade e volume de tickets por produto</p>
       <div class="chart-card-full">
         <div class="chart-content-wrapper">
@@ -22,7 +27,7 @@
       </div>
 
       <div class="insight-section-wrapper">
-          <InsightCard :insights="insightsData"/>
+        <InsightCard :insights="insightsData" />
       </div>
 
       <h2 class="chart-title-main">Análise de Causas Raízes</h2>
@@ -34,40 +39,44 @@
           </div>
         </div>
       </div>
-    </div>  
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-
 import { computed, onMounted, ref, type Ref, watch } from 'vue'
-
 
 import NavigationBar from '@/components/navigationBar/NavigationBar.vue'
 import Dropdown from 'primevue/dropdown'
 import LoadingComponent from '@/components/LoadingComponent.vue'
 import InsightCard from '@/components/insightSection/InsightCard.vue'
 
-
 import {
-  BarElement, CategoryScale, Chart as ChartJS, type Chart, type ChartData,
-  type ChartOptions, Legend, LinearScale, LineElement, PointElement,
-  Title, Tooltip, type TooltipItem,
+  BarElement,
+  CategoryScale,
+  Chart as ChartJS,
+  type Chart,
+  type ChartData,
+  type ChartOptions,
+  Legend,
+  LinearScale,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  type TooltipItem,
 } from 'chart.js'
 import { Chart as VueChart } from 'vue-chartjs'
-
 
 import { getRootCauseAnalysis } from '@/api/RootCauseAnalysisApi'
 import { fetchProductInsights } from '@/api/InsightCardApi'
 import { fetchFilterOptions } from '@/api/FiltersApi'
 
-
 import type { RootCauseAnalysisData } from '@/types/RootCauseAnalysisResponse'
 import type { FilterCompany } from '@/types/Company'
 import type { SelectListOption } from '@/types/SelectListOption'
-import type { Forecaster, ProductInsight } from '@/components/types/InsightType/Insight'
 import ForecasterCard from '@/components/insightSection/ForecasterCard.vue'
-
+import type { Forecaster, ProductInsight } from '@/types/InsightType/Insight.ts'
 
 const eightyPercentLine = {
   id: 'eightyPercentLine',
@@ -88,41 +97,43 @@ const eightyPercentLine = {
   },
 }
 ChartJS.register(
-  CategoryScale, LinearScale, BarElement, LineElement, PointElement,
-  Title, Tooltip, Legend, eightyPercentLine,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+  eightyPercentLine,
 )
 
 const selectedClient = ref<FilterCompany>()
 const clientOptions: Ref<FilterCompany[]> = ref([])
 
-
 const paretoLoading: Ref<boolean> = ref(false)
 const rawParetoData: Ref<RootCauseAnalysisData> = ref({})
 
-
 const insightLoading: Ref<boolean> = ref(false)
-const insightsData: Ref<ProductInsight[]> = ref([]);
-const forecasterDate: Ref<Forecaster[]> = ref([]);
+const insightsData: Ref<ProductInsight[]> = ref([])
+const forecasterDate: Ref<Forecaster[]> = ref([])
 
-const currentPage = ref(1);
-const itemsPerPage = ref(3);
+const currentPage = ref(1)
+const itemsPerPage = ref(3)
 
 const loadClientOptions = async () => {
   try {
     const filterData = await fetchFilterOptions(3)
     const allCompanies = filterData.allCompanies as unknown as SelectListOption[]
-    const companyOptions: FilterCompany[] = allCompanies.map(
-      (company) => ({
-        name: company.name,
-        code: company.id!.toString(),
-      }),
-    )
+    const companyOptions: FilterCompany[] = allCompanies.map((company) => ({
+      name: company.name,
+      code: company.id!.toString(),
+    }))
     clientOptions.value = companyOptions
   } catch (error) {
     console.error('Error fetching filter options for clients:', error)
   }
 }
-
 
 const fetchParetoData = async (clientCode: string) => {
   paretoLoading.value = true
@@ -138,111 +149,104 @@ const fetchParetoData = async (clientCode: string) => {
   }
 }
 
-
 const fetchInsightsData = async (clientCode: string | null) => {
-
   if (clientCode === 'ALL' || clientCode === null) {
-    insightsData.value = [];
-    insightLoading.value = false;
-    return;
+    insightsData.value = []
+    insightLoading.value = false
+    return
   }
 
-  insightLoading.value = true;
+  insightLoading.value = true
   try {
-    const customerId = parseInt(clientCode);
+    const customerId = parseInt(clientCode)
 
     if (!isNaN(customerId)) {
-      const rawInsights = await fetchProductInsights(customerId);
+      const rawInsights = await fetchProductInsights(customerId)
 
-      insightsData.value = cleanInsightsData(rawInsights.productInsightsData);
-      forecasterDate.value = rawInsights.seasonalityInsightData;
+      insightsData.value = cleanInsightsData(rawInsights.productInsightsData)
+      forecasterDate.value = rawInsights.seasonalityInsightData
     } else {
-      console.warn('Invalid client ID for insights:', clientCode);
-      insightsData.value = [];
+      console.warn('Invalid client ID for insights:', clientCode)
+      insightsData.value = []
     }
   } catch (error) {
-    console.error("Erro ao buscar insights:", error);
-    insightsData.value = [];
+    console.error('Erro ao buscar insights:', error)
+    insightsData.value = []
   } finally {
-    insightLoading.value = false;
+    insightLoading.value = false
   }
-};
+}
 
 const totalPages = computed(() => {
-  return Math.ceil(insightsData.value.length / itemsPerPage.value);
-});
+  return Math.ceil(insightsData.value.length / itemsPerPage.value)
+})
 
 const nextPage = () => {
   if (currentPage.value < totalPages.value) {
-    currentPage.value++;
+    currentPage.value++
   }
-};
+}
 
 const prevPage = () => {
   if (currentPage.value > 1) {
-    currentPage.value--;
+    currentPage.value--
   }
-};
+}
 
 function cleanActionText(text: string): string {
-  if (!text) return '';
-  // Regex:
-  // \*\* -> Corresponde aos dois asteriscos de abertura
-  // (.*?) -> Captura (de forma não-gulosa) qualquer caractere entre os asteriscos
-  // \*\* -> Corresponde aos dois asteriscos de fechamento
-  //  ? -> Corresponde a um espaço opcional logo após o fechamento
-  const regex = /\*\*(.*?)\*\* ?/g;
-  return text.replace(regex, '');
+  if (!text) return ''
+
+  const regex = /\*\*(.*?)\*\* ?/g
+  return text.replace(regex, '')
 }
 
 function cleanInsightsData(insights: ProductInsight[]): ProductInsight[] {
-  if (!insights) return [];
+  if (!insights) return []
 
-  return insights.map(product => ({
+  return insights.map((product) => ({
     ...product,
-    insights: product.insights.map(theme => ({
+    insights: product.insights.map((theme) => ({
       ...theme,
-      actions: theme.actions.map(action => cleanActionText(action))
-    }))
-  }));
+      actions: theme.actions.map((action) => cleanActionText(action)),
+    })),
+  }))
 }
 
 const sortedParetoData = computed(() => {
-  if(selectedClient.value)
-  {
-  const clientCode = selectedClient.value.code
-  const data = rawParetoData.value
-  if (Object.keys(data).length === 0) return []
+  if (selectedClient.value) {
+    const clientCode = selectedClient.value.code
+    const data = rawParetoData.value
+    if (Object.keys(data).length === 0) return []
 
-  const dataArray = Object.entries(data).map(([label, counts]) => {
-    let occurrenceValue = 0
-    if (clientCode === 'ALL') {
-      if (counts && typeof counts === 'object') {
-        occurrenceValue = Object.values(counts).reduce((sum, value) => sum + value, 0)
+    const dataArray = Object.entries(data).map(([label, counts]) => {
+      let occurrenceValue = 0
+      if (clientCode === 'ALL') {
+        if (counts && typeof counts === 'object') {
+          occurrenceValue = Object.values(counts).reduce((sum, value) => sum + value, 0)
+        }
+      } else {
+        occurrenceValue = (counts as Record<string, number>)?.[clientCode] || 0
       }
-    } else {
-      occurrenceValue = (counts as Record<string, number>)?.[clientCode] || 0
-    }
-    return { label, occurrence: occurrenceValue }
-  })
+      return { label, occurrence: occurrenceValue }
+    })
 
-  const filteredData = dataArray.filter((item) => item.occurrence > 0)
-  filteredData.sort((a, b) => b.occurrence - a.occurrence)
-  return filteredData
-}
+    const filteredData = dataArray.filter((item) => item.occurrence > 0)
+    filteredData.sort((a, b) => b.occurrence - a.occurrence)
+    return filteredData
+  }
 })
 
 const paretoLabels = computed(() => {
-    if (sortedParetoData.value) {
-      return sortedParetoData.value.map((item) => {
-        return item.label; 
-      });
-    }
-    return [];
-});
-const paretoOccurrences = computed(() => 
-    sortedParetoData.value?.map((item) => item.occurrence) ?? []
-);
+  if (sortedParetoData.value) {
+    return sortedParetoData.value.map((item) => {
+      return item.label
+    })
+  }
+  return []
+})
+const paretoOccurrences = computed(
+  () => sortedParetoData.value?.map((item) => item.occurrence) ?? [],
+)
 
 const calculateCumulativePercentage = (data: number[]) => {
   const total = data.reduce((sum, value) => sum + value, 0)
@@ -274,7 +278,7 @@ const paretoChartData = computed<ChartData<'bar' | 'line', (number | null)[], st
         pointBorderColor: '#000000',
         pointBorderWidth: 2,
         order: 1,
-        clip: false
+        clip: false,
       },
       {
         type: 'bar',
@@ -296,14 +300,13 @@ const maxOccurrences = computed(() => {
 })
 
 const suggestedMinOccurrences = computed(() => {
-  const min = Math.min(...paretoOccurrences.value.filter(v => v > 0))
+  const min = Math.min(...paretoOccurrences.value.filter((v) => v > 0))
   if (min === Infinity || min === 0) return 0
   const suggestedMin = Math.floor(min / 100) * 100
   const max = Math.max(...paretoOccurrences.value)
-  if ((max - min) > 200) return 0
+  if (max - min > 200) return 0
   return suggestedMin > 0 ? suggestedMin : 0
 })
-
 
 const paretoChartOptions = computed<ChartOptions<'bar'>>(() => ({
   responsive: true,
@@ -325,7 +328,9 @@ const paretoChartOptions = computed<ChartOptions<'bar'>>(() => ({
           return label
         },
         title: function (context: TooltipItem<'bar' | 'line'>[]) {
-          const barValue = context.find((c: TooltipItem<'bar' | 'line'>) => c.dataset.type === 'bar')?.parsed.y || 0
+          const barValue =
+            context.find((c: TooltipItem<'bar' | 'line'>) => c.dataset.type === 'bar')?.parsed.y ||
+            0
           return `${context[0].label}: ${barValue}`
         },
       },
@@ -334,18 +339,31 @@ const paretoChartOptions = computed<ChartOptions<'bar'>>(() => ({
   scales: {
     x: { type: 'category', grid: { display: false }, ticks: { maxRotation: 30, minRotation: 0 } },
     y: {
-      type: 'linear', position: 'left', min: suggestedMinOccurrences.value,
-      max: maxOccurrences.value, title: { display: false },
+      type: 'linear',
+      position: 'left',
+      min: suggestedMinOccurrences.value,
+      max: maxOccurrences.value,
+      title: { display: false },
       ticks: {
-        stepSize: maxOccurrences.value === 0 ? 100
-          : Math.max(10, Math.ceil((maxOccurrences.value - suggestedMinOccurrences.value) / 10)),
+        stepSize:
+          maxOccurrences.value === 0
+            ? 100
+            : Math.max(10, Math.ceil((maxOccurrences.value - suggestedMinOccurrences.value) / 10)),
       },
       grid: { color: 'rgba(0, 0, 0, 0.1)' },
     },
     y1: {
-      type: 'linear', position: 'right', min: 0, max: 100,
-      ticks: { callback: function (value: any) { return value + '%' } },
-      border: { display: false }, grid: { drawOnChartArea: false },
+      type: 'linear',
+      position: 'right',
+      min: 0,
+      max: 100,
+      ticks: {
+        callback: function (value: any) {
+          return value + '%'
+        },
+      },
+      border: { display: false },
+      grid: { drawOnChartArea: false },
     },
   },
 }))
@@ -353,17 +371,16 @@ const paretoChartOptions = computed<ChartOptions<'bar'>>(() => ({
 watch(
   selectedClient,
   (newClient) => {
-    if(!!newClient){
-      fetchParetoData(newClient.code);
-      fetchInsightsData(newClient.code);
+    if (!!newClient) {
+      fetchParetoData(newClient.code)
+      fetchInsightsData(newClient.code)
     }
   },
   { deep: true },
 )
 
-
 onMounted(async () => {
- await loadClientOptions()
+  await loadClientOptions()
 })
 </script>
 
@@ -412,9 +429,9 @@ onMounted(async () => {
 }
 
 .chart-title-main {
- font-size: 20px;
- font-weight: 600;
- margin-bottom: 0.75rem;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
 }
 
 .chart-subtitle-pareto {
@@ -429,7 +446,7 @@ onMounted(async () => {
   position: relative;
 }
 
-.pareto-chart-wrapper>canvas {
+.pareto-chart-wrapper > canvas {
   position: absolute;
   width: 100%;
   height: 100%;

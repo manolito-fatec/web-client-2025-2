@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ProductInsight } from '../types/InsightType/Insight';
+import type { ProductInsight } from '@/types/InsightType/Insight';
 import { defineProps, ref, computed, watch } from 'vue';
 
 const props = defineProps<{
@@ -47,7 +47,7 @@ watch(() => props.insights, () => {
     </div>
 
     <section class="insight-card-body">
-      
+
       <ul v-if="paginatedInsights && paginatedInsights.length > 0" class="insight-card-list">
         <li v-for="product in paginatedInsights" :key="product.id" class="insight-card-item">
           <div class="product-title">
@@ -114,7 +114,7 @@ watch(() => props.insights, () => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
-  
+
   padding-top: 1rem;
   margin-top: 1.5rem;
   border-top: 1px solid #eee;
