@@ -1,5 +1,5 @@
-import type { TicketsByProduct } from '@/components/types/ChartTypes/TicketsByProduct.ts'
-import type { TicketsByPeriod } from '@/components/types/ChartTypes/TicketsByPeriod.ts'
+import type { TicketsByProduct } from '@/types/ChartTypes/TicketsByProduct.ts'
+import type { TicketsByPeriod } from '@/types/ChartTypes/TicketsByPeriod.ts'
 
 export interface ChartDate {
   recidivismRate: number;

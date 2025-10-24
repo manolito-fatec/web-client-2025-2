@@ -1,4 +1,4 @@
-import type { TicketsByPeriod } from '@/components/types/ChartTypes/TicketsByPeriod.ts'
+import type { TicketsByPeriod } from '@/types/ChartTypes/TicketsByPeriod.ts'
 
 export interface Product {
   id: number;
