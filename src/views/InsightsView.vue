@@ -208,6 +208,8 @@ function cleanInsightsData(insights: ProductInsight[]): ProductInsight[] {
 }
 
 const sortedParetoData = computed(() => {
+  if(selectedClient.value)
+  {
   const clientCode = selectedClient.value.code
   const data = rawParetoData.value
   if (Object.keys(data).length === 0) return []
@@ -227,10 +229,20 @@ const sortedParetoData = computed(() => {
   const filteredData = dataArray.filter((item) => item.occurrence > 0)
   filteredData.sort((a, b) => b.occurrence - a.occurrence)
   return filteredData
+}
 })
 
-const paretoLabels = computed(() => sortedParetoData.value.map((item) => item.label))
-const paretoOccurrences = computed(() => sortedParetoData.value.map((item) => item.occurrence))
+const paretoLabels = computed(() => {
+    if (sortedParetoData.value) {
+      return sortedParetoData.value.map((item) => {
+        return item.label; 
+      });
+    }
+    return [];
+});
+const paretoOccurrences = computed(() => 
+    sortedParetoData.value?.map((item) => item.occurrence) ?? []
+);
 
 const calculateCumulativePercentage = (data: number[]) => {
   const total = data.reduce((sum, value) => sum + value, 0)
