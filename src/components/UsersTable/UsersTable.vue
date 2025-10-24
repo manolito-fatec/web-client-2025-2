@@ -71,14 +71,16 @@ const searchEmail = ref('')
 
 const roleOptions = ['Admin', 'Operator', 'Manager']
 
-// Computed property para filtrar usuários
 const filteredUsers = computed(() => {
-  if (!searchEmail.value) {
-    return appUsersInTable.value
+  let users = appUsersInTable.value
+
+  if (searchEmail.value) {
+    users = users.filter(user =>
+      user.email.toLowerCase().includes(searchEmail.value.toLowerCase())
+    )
   }
-  return appUsersInTable.value.filter(user =>
-    user.email.toLowerCase().includes(searchEmail.value.toLowerCase())
-  )
+
+  return users.slice().sort((a, b) => a.email.localeCompare(b.email))
 })
 
 function updateUsers () {
@@ -109,7 +111,7 @@ const deleteUser = (user: AppUserTable) => {
 
 const onRoleChange = (user: AppUserTable) => {
   api
-    .put('user/role', { id: user.id, role: user.role })
+    .post('user/role', { id: user.id, role: user.role })
     .then((response) => {
       switch (response.status) {
         case 200:
