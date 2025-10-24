@@ -6,30 +6,33 @@
       <div class="p-field">
         <label for="client-filter">Cliente</label>
         <Dropdown id="client-filter" v-model="selectedClient" :options="clientOptions" optionLabel="name"
-          placeholder="Todos" class="client-dropdown" />
+         class="client-dropdown" />
       </div>
     </div>
-
-    <div class="chart-card-full">
-      <LoadingComponent v-show="paretoLoading" />
-      <div v-show="!paretoLoading" class="chart-content-wrapper">
-        <h2 class="chart-title-main">Análise de Causas Raízes</h2>
-        <p class="chart-subtitle-pareto">Pareto por Subcategoria (Ocorrências x % Acumulado)</p>
-        <div class="pareto-chart-wrapper">
-          <VueChart type="bar" :data="paretoChartData" :options="paretoChartOptions" />
+   <LoadingComponent v-show="insightLoading"/>
+   <div v-show="!insightsData.length" class="empty-insights-message">
+          <p>Selecione um cliente específico no filtro para ver os insights do produto.</p>
+   </div>
+   <div v-if="insightsData.length && forecasterDate.length" >
+      <p class="forecaster-card-title">Previsão de sazonalidade e volume de tickets por produto</p>
+      <div class="chart-card-full">
+        <div class="chart-content-wrapper">
+          <ForecasterCard :forecaster="forecasterDate"></ForecasterCard>
         </div>
       </div>
-    </div>
 
-    <div class="insight-section-wrapper">
-      <LoadingComponent v-show="insightLoading" />
-
-      <div v-show="!insightLoading && selectedClient.code === 'ALL'" class="empty-insights-message">
-        <p>Selecione um cliente específico no filtro para ver os insights do produto.</p>
+      <div class="insight-section-wrapper">
+          <InsightCard :insights="insightsData"/>
       </div>
 
-      <div v-show="!insightLoading && selectedClient.code !== 'ALL'">
-        <InsightCard :insights="insightsData" />
+      <h2 class="chart-title-main">Análise de Causas Raízes</h2>
+      <div class="chart-card-full">
+        <div class="chart-content-wrapper">
+          <p class="chart-subtitle-pareto">Pareto por Subcategoria (Ocorrências x % Acumulado)</p>
+          <div class="pareto-chart-wrapper">
+            <VueChart type="bar" :data="paretoChartData" :options="paretoChartOptions" />
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -62,7 +65,8 @@ import { fetchFilterOptions } from '@/api/FiltersApi'
 import type { RootCauseAnalysisData } from '@/types/RootCauseAnalysisResponse'
 import type { FilterCompany } from '@/types/Company'
 import type { SelectListOption } from '@/types/SelectListOption'
-import type { ProductInsight } from '@/types/InsightType/Insight'
+import type { Forecaster, ProductInsight } from '@/components/types/InsightType/Insight'
+import ForecasterCard from '@/components/insightSection/ForecasterCard.vue'
 
 
 const eightyPercentLine = {
@@ -88,8 +92,8 @@ ChartJS.register(
   Title, Tooltip, Legend, eightyPercentLine,
 )
 
-const selectedClient = ref<FilterCompany>({ name: 'Todos', code: 'ALL' })
-const clientOptions: Ref<FilterCompany[]> = ref([{ name: 'Todos', code: 'ALL' }])
+const selectedClient = ref<FilterCompany>()
+const clientOptions: Ref<FilterCompany[]> = ref([])
 
 
 const paretoLoading: Ref<boolean> = ref(false)
@@ -98,7 +102,7 @@ const rawParetoData: Ref<RootCauseAnalysisData> = ref({})
 
 const insightLoading: Ref<boolean> = ref(false)
 const insightsData: Ref<ProductInsight[]> = ref([]);
-
+const forecasterDate: Ref<Forecaster[]> = ref([]);
 
 const currentPage = ref(1);
 const itemsPerPage = ref(3);
@@ -113,7 +117,7 @@ const loadClientOptions = async () => {
         code: company.id!.toString(),
       }),
     )
-    clientOptions.value = [{ name: 'Todos', code: 'ALL' }, ...companyOptions]
+    clientOptions.value = companyOptions
   } catch (error) {
     console.error('Error fetching filter options for clients:', error)
   }
@@ -150,8 +154,8 @@ const fetchInsightsData = async (clientCode: string | null) => {
     if (!isNaN(customerId)) {
       const rawInsights = await fetchProductInsights(customerId);
 
-      insightsData.value = cleanInsightsData(rawInsights);
-
+      insightsData.value = cleanInsightsData(rawInsights.productInsightsData);
+      forecasterDate.value = rawInsights.seasonalityInsightData;
     } else {
       console.warn('Invalid client ID for insights:', clientCode);
       insightsData.value = [];
@@ -204,6 +208,8 @@ function cleanInsightsData(insights: ProductInsight[]): ProductInsight[] {
 }
 
 const sortedParetoData = computed(() => {
+  if(selectedClient.value)
+  {
   const clientCode = selectedClient.value.code
   const data = rawParetoData.value
   if (Object.keys(data).length === 0) return []
@@ -223,10 +229,20 @@ const sortedParetoData = computed(() => {
   const filteredData = dataArray.filter((item) => item.occurrence > 0)
   filteredData.sort((a, b) => b.occurrence - a.occurrence)
   return filteredData
+}
 })
 
-const paretoLabels = computed(() => sortedParetoData.value.map((item) => item.label))
-const paretoOccurrences = computed(() => sortedParetoData.value.map((item) => item.occurrence))
+const paretoLabels = computed(() => {
+    if (sortedParetoData.value) {
+      return sortedParetoData.value.map((item) => {
+        return item.label;
+      });
+    }
+    return [];
+});
+const paretoOccurrences = computed(() =>
+    sortedParetoData.value?.map((item) => item.occurrence) ?? []
+);
 
 const calculateCumulativePercentage = (data: number[]) => {
   const total = data.reduce((sum, value) => sum + value, 0)
@@ -337,19 +353,17 @@ const paretoChartOptions = computed<ChartOptions<'bar'>>(() => ({
 watch(
   selectedClient,
   (newClient) => {
-    fetchParetoData(newClient.code);
-    fetchInsightsData(newClient.code);
+    if(!!newClient){
+      fetchParetoData(newClient.code);
+      fetchInsightsData(newClient.code);
+    }
   },
   { deep: true },
 )
 
 
 onMounted(async () => {
-  await loadClientOptions()
-  await Promise.all([
-    fetchParetoData(selectedClient.value.code),
-    fetchInsightsData(selectedClient.value.code)
-  ]);
+ await loadClientOptions()
 })
 </script>
 
@@ -359,6 +373,12 @@ onMounted(async () => {
   padding: 2rem;
   background-color: #f7f9fc;
   color: #333;
+}
+
+.forecaster-card-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
 }
 
 .filter-card {
@@ -392,10 +412,9 @@ onMounted(async () => {
 }
 
 .chart-title-main {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin: 0;
-  margin-bottom: 0.2rem;
+ font-size: 20px;
+ font-weight: 600;
+ margin-bottom: 0.75rem;
 }
 
 .chart-subtitle-pareto {
