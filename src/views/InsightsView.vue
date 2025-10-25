@@ -17,6 +17,7 @@
 
     <p class="forecaster-card-title">Previsão de tickets estourarem o SLA</p>
     <SlaPredictionCard
+      v-show="slaPredictionData.length > 0 || slaPredictionLoading"
       :predictionData="slaPredictionData"
       :loading="slaPredictionLoading"
     />
@@ -95,9 +96,6 @@ const loadClientOptions = async () => {
       code: company.id!.toString(),
     }))
     clientOptions.value = companyOptions
-    if (companyOptions.length > 0 && !selectedClient.value) {
-      selectedClient.value = companyOptions[0]
-    }
   } catch (error) {
     console.error('Error fetching filter options for clients:', error)
   }
@@ -278,5 +276,26 @@ onMounted(async () => {
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
+}
+
+.p-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.p-field label {
+  font-weight: bold;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.client-dropdown {
+  width: 15rem;
+  max-width: 100%;
+}
+
+.insight-section-wrapper {
+  margin-top: 2.5rem;
 }
 </style>
