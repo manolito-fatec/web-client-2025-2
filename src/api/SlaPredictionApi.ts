@@ -6,10 +6,14 @@ const BASE_URL = 'api/insights/data';
 const transformSlaPrediction = (data: SlaPredictionResponse[]): SlaPredictionItem[] => {
   if (!Array.isArray(data)) return [];
 
-  const mappedData = data.map(item => ({
-    name: item.subcategoryName,
-    percentage: Math.round(item.averageRiskProbability * 100),
-  }));
+  const mappedData = data.map(item => {
+    const percentageValue = parseFloat((item.averageRiskProbability * 100).toFixed(1));
+
+    return {
+      name: item.subcategoryName,
+      percentage: percentageValue,
+    };
+  });
 
   mappedData.sort((a, b) => b.percentage - a.percentage);
 
