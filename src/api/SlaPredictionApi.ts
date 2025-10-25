@@ -1,9 +1,9 @@
 import api from '@/api/axios/AxiosConfig.ts'
-import type { SlaPredictionDto, SlaPredictionItem } from '@/types/SlaPrediction';
+import type { SlaPredictionResponse, InsightApiResponse, SlaPredictionItem } from '@/types/InsightType/Insight'
 
 const BASE_URL = 'api/insights/data';
 
-const transformSlaPrediction = (data: SlaPredictionDto): SlaPredictionItem[] => {
+const transformSlaPrediction = (data: SlaPredictionResponse[]): SlaPredictionItem[] => {
   if (!Array.isArray(data)) return [];
 
   const mappedData = data.map(item => ({
@@ -27,9 +27,11 @@ export async function fetchSlaPrediction(companyId: string | null)
 
     const url = clientParam ? `${BASE_URL}?${clientParam}` : BASE_URL;
 
-    const response = await api.get<SlaPredictionDto>(url);
+    const response = await api.get<InsightApiResponse>(url);
 
-    return transformSlaPrediction(response.data);
+    const slaData = response.data.slaInsightData;
+
+    return transformSlaPrediction(slaData);
 
   } catch (error) {
     console.error("Error fetching SLA prediction data", error);

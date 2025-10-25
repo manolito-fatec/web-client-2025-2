@@ -57,7 +57,7 @@ import InsightCard from '@/components/insightSection/InsightCard.vue'
 import ParetoChart from '@/components/ParetoChart.vue'
 import ForecasterCard from '@/components/insightSection/ForecasterCard.vue'
 import SlaPredictionCard from '@/components/SlaPredictionCard.vue'
-import type { SlaPredictionItem } from '@/types/SlaPrediction'
+import type { SlaPredictionItem } from '@/types/InsightType/Insight.ts'
 
 import { getRootCauseAnalysis } from '@/api/RootCauseAnalysisApi'
 import { fetchProductInsights } from '@/api/InsightCardApi'
@@ -153,7 +153,7 @@ const fetchSlaPredictionData = async (clientCode: string | null) => {
 
   slaPredictionLoading.value = true
   try {
-    const data = await fetchSlaPrediction(clientCode)
+    const data: SlaPredictionItem[] = await fetchSlaPrediction(clientCode)
     slaPredictionData.value = data
   } catch (error) {
     console.error('Error fetching SLA prediction data:', error)
