@@ -13,7 +13,7 @@
           <li v-for="(item, index) in predictionData" :key="index" class="prediction-item">
             <span class="subcategory-name">{{ item.name }}</span>
             <span class="prediction-percentage">{{ item.percentage }}%</span>
-            <span v-if="item.isCritical" class="critical-indicator"></span>
+            <span v-if="index === 0" class="critical-indicator"></span>
           </li>
         </ul>
       </div>
@@ -27,15 +27,9 @@
 
 <script setup lang="ts">
 import LoadingComponent from '@/components/LoadingComponent.vue'
-import { type Ref, ref } from 'vue'
+import type { SlaPredictionItem } from '@/types/SlaPrediction'
 
-export type SlaPredictionItem = {
-  name: string;
-  percentage: number;
-  isCritical: boolean;
-};
-
-const props = defineProps<{
+defineProps<{
   predictionData: SlaPredictionItem[];
   loading: boolean;
 }>()

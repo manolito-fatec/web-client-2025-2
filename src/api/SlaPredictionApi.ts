@@ -4,13 +4,16 @@ import type { SlaPredictionDto, SlaPredictionItem } from '@/types/SlaPrediction'
 const BASE_URL = 'api/insights/data';
 
 const transformSlaPrediction = (data: SlaPredictionDto): SlaPredictionItem[] => {
-  if (!data?.items) return [];
+  if (!Array.isArray(data)) return [];
 
-  return data.items.map(item => ({
-    name: item.subCategory,
-    percentage: item.percentage,
-    isCritical: item.isHighRisk,
+  const mappedData = data.map(item => ({
+    name: item.subcategoryName,
+    percentage: Math.round(item.averageRiskProbability * 100),
   }));
+
+  mappedData.sort((a, b) => b.percentage - a.percentage);
+
+  return mappedData;
 };
 
 export async function fetchSlaPrediction(companyId: string | null)

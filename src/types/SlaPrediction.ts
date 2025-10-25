@@ -1,15 +1,12 @@
 export type SlaPredictionRawItem = {
-  subCategory: string;
-  percentage: number;
-  isHighRisk: boolean;
+  subcategoryId: number;
+  subcategoryName: string;
+  averageRiskProbability: number;
 };
 
-export type SlaPredictionDto = {
-  items: SlaPredictionRawItem[];
-};
+export type SlaPredictionDto = SlaPredictionRawItem[];
 
 export type SlaPredictionItem = {
   name: string;
   percentage: number;
-  isCritical: boolean;
 };
