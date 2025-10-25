@@ -70,15 +70,34 @@ import Button from 'primevue/button'
 import { useRouter, useRoute } from 'vue-router'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { authService } from '@/api/AuthService.ts'
+import { getSessionItem } from '@/api/session/SessionManagement.ts'
+import { useToast } from 'primevue/usetoast'
 
 const router = useRouter()
 const route = useRoute()
+const toast = useToast()
 
 const currentRouteName = computed(() => route.name)
 
 const navigate = (routeName: string) => {
   if (currentRouteName.value !== routeName) {
-    router.push({ name: routeName })
+    switch(routeName) {
+      case 'admin':
+        if (userRoleValidate('Admin')) {
+          router.push({ name: routeName })
+          break
+        } else {
+          toast.add({
+            severity: 'error',
+            summary: 'Acesso negado',
+            detail: 'Somente administradores podem entrar nesta tela!',
+            life: 3000
+          })
+          break
+        }
+      default:
+        router.push({ name: routeName })
+    }
   }
 }
 
@@ -98,6 +117,10 @@ const userMenuRef = ref<HTMLElement | null>(null)
 
 const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value
+}
+
+function userRoleValidate(role: string):boolean {
+  return getSessionItem('role') == role
 }
 
 onMounted(async () => {
@@ -158,7 +181,6 @@ onUnmounted(() => {
   color: #000;
   border-bottom: 2px solid #3b82f6;
 }
-
 
 .user-menu {
   position: relative;

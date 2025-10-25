@@ -1,4 +1,4 @@
-import type { InsightApiResponse, ProductInsight } from '@/components/types/InsightType/Insight';
+import type { InsightApiResponse, ProductInsight } from '@/types/InsightType/Insight';
 import api from '@/api/axios/AxiosConfig.ts'
 
 
@@ -7,7 +7,7 @@ import api from '@/api/axios/AxiosConfig.ts'
  * @param customerId - O ID do cliente para o qual buscar os insights.
  * @returns Uma promessa que resolve para um array de ProductInsight.
  */
-export async function fetchProductInsights(customerId: number): Promise<ProductInsight[]> {
+export async function fetchProductInsights(customerId: number): Promise<InsightApiResponse> {
   const url = `api/insights/data`;
 
   try {
@@ -17,7 +17,7 @@ export async function fetchProductInsights(customerId: number): Promise<ProductI
       }
     });
 
-    return response.data.productInsightsData || [];
+    return response.data || [];
 
   } catch (error) {
     console.error(`Erro ao buscar insights para o cliente ID ${customerId}:`, error);
