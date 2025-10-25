@@ -15,6 +15,7 @@
       </div>
     </div>
 
+    <p class="forecaster-card-title">Previsão de tickets estourarem o SLA</p>
     <SlaPredictionCard
       :predictionData="slaPredictionData"
       :loading="slaPredictionLoading"

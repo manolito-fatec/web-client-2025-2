@@ -2,8 +2,6 @@
   <div class="card-container">
     <LoadingComponent v-show="loading" />
     <div v-show="!loading" class="content-wrapper">
-      <h2 class="card-title">Previsão de tickets estourarem o SLA</h2>
-
       <div v-if="predictionData.length > 0">
         <p class="card-subtitle">
           Previsão baseada no tickets abertos das subcategorias abaixo:
@@ -48,13 +46,6 @@ defineProps<{
 
 .content-wrapper {
   flex-grow: 1;
-}
-
-.card-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0 0 1rem 0;
-  color: #1E293B;
 }
 
 .card-subtitle {
