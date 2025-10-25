@@ -11,7 +11,7 @@
 
         <ul class="prediction-list">
           <li v-for="(item, index) in predictionData" :key="index" class="prediction-item">
-            <span class="subcategory-name">{{ item.name }}</span>
+            <span class="subcategory-name">{{ item.name }}:</span>
             <span class="prediction-percentage">{{ item.percentage }}%</span>
             <span v-if="index === 0" class="critical-indicator"></span>
           </li>
@@ -27,7 +27,7 @@
 
 <script setup lang="ts">
 import LoadingComponent from '@/components/LoadingComponent.vue'
-import type { SlaPredictionItem } from '@/types/SlaPrediction'
+import type { SlaPredictionItem } from '@/types/InsightType/Insight.ts'
 
 defineProps<{
   predictionData: SlaPredictionItem[];
@@ -84,13 +84,12 @@ defineProps<{
 }
 
 .subcategory-name {
-  flex-grow: 1;
   font-weight: 500;
+  margin-right: 0.25rem;
 }
 
 .prediction-percentage {
   font-weight: bold;
-  margin-right: 0.5rem;
 }
 
 .critical-indicator {
@@ -99,7 +98,7 @@ defineProps<{
   height: 8px;
   border-radius: 50%;
   background-color: #ef4444;
-  margin-left: 0.25rem;
+  margin-left: 0.5rem;
 }
 
 .no-data-message {
