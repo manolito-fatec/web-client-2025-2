@@ -39,11 +39,17 @@
       </div>
 
       <h2 class="chart-title-main">Análise de Causas Raízes</h2>
-      <ParetoChart
-        :raw-pareto-data="rawParetoData"
-        :selected-client="selectedClient"
-        :loading="paretoLoading"
-      />
+
+      <div v-if="insightsData.length && forecasterDate.length">
+        <h2 class="chart-title-main">Análise de Causas Raízes</h2>
+        <ParetoChart
+          v-if="selectedClient"
+          :raw-pareto-data="rawParetoData"
+          :selected-client="selectedClient"
+          :loading="paretoLoading"
+        />
+
+      </div>
 
     </div>
   </div>
