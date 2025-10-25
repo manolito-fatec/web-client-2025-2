@@ -17,7 +17,7 @@ export interface ProductInsight {
 }
 
 export interface InsightApiResponse {
-  slaInsightData: any | null;
+  slaInsightData: SlaPredictionResponse[];
   seasonalityInsightData: Forecaster[];
   productInsightsData: ProductInsight[];
   paretoInsightData: any[];
@@ -47,4 +47,15 @@ export interface ChartDataStructure {
 export interface MonthTicket {
   month: string,
   total: number
+}
+
+export interface SlaPredictionResponse {
+  subcategoryId: number;
+  subcategoryName: string;
+  averageRiskProbability: number;
+}
+
+export interface SlaPredictionItem {
+  name: string;
+  percentage: number;
 }
