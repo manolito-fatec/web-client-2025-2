@@ -41,8 +41,8 @@
       Enviar Link
     </button>
     <button class="btn secondary" @click="emit('toggleSign')">Cancelar</button>
+    <LoadingComponent v-if="loading"></LoadingComponent>
     <p class="hint">Um e-mail será enviado com link válido por 24h.</p>
-
     <div v-if="created" class="email-sent">
       <h3>Verifique seu e-mail</h3>
       <p>Enviamos um link para concluir seu cadastro. Verifique sua caixa de entrada.</p>
@@ -59,6 +59,7 @@
 import { ref, computed, type Ref } from 'vue'
 import type { NewUser } from '@/types/NewUser.ts'
 import { signApi } from '@/api/SignApi.ts'
+import LoadingComponent from '../LoadingComponent.vue'
 
 const emit = defineEmits(['toggleSign'])
 const created = ref<boolean>(false)
@@ -67,6 +68,7 @@ const email: Ref<string> = ref<string>('')
 const name: Ref<string> = ref<string>('')
 const phone: Ref<string> = ref<string>('')
 const password: Ref<string> = ref<string>('')
+const loading: Ref<boolean> = ref<boolean>(false)
 
 const pardalRegex = /^[\w.-]+@[\w.-]+\.\w+$/
 const nameRegex = /^[a-záàâãéèêíïóôõöúçñ\s]{3,}$/i
@@ -154,12 +156,14 @@ function handlePhoneInput() {
 
 function handleSignIn() {
   if (isFormValid.value) {
+    loading.value = true;
     const newUser:Ref<NewUser> = ref<NewUser>({ email: email.value,
       password: password.value,
       phone: phone.value,
       name: name.value
     })
     signApi(newUser.value).then(() => {
+      loading.value = false
       created.value = true
     })
   } else {
