@@ -38,23 +38,76 @@ const password: Ref<string> = ref<string>('')
 const isLoading: Ref<boolean> = ref<boolean>(false)
 
 const showError = (errorSum: string, errorMsg: string) => {
-  toast.add({ severity: 'error', summary: errorSum, detail: errorMsg, life: 3000 });
+  toast.add({ severity: 'error', summary: errorSum, detail: errorMsg, life: 6000 });
 };
 
-function handleLogin() {
-  isLoading.value = true
-  useAuthStore().loginAndStore({email: email.value, password: password.value}).then( logged => {
-    console.log(logged)
-    if (logged) {
-      router.push('/home')
-    } else {
-      showError('Erro ao realizar login', 'Houve um erro ao logar. Por favor, revise os dados de acesso')
-      isLoading.value = false
+async function handleLogin() {
+  isLoading.value = true;
+
+  try {
+    const returnStatus = await useAuthStore().loginAndStore({
+      email: email.value,
+      password: password.value
+    });
+
+    switch (returnStatus) {
+      case 200:
+        toast.add({
+          severity: "success",
+          summary: "Login realizado!",
+          life: 3000
+        });
+        router.push("/home");
+        break;
+
+      case 400:
+        showError(
+          "Dados inválidos",
+          "Verifique o e-mail e a senha e tente novamente."
+        );
+        break;
+
+      case 401:
+      case 403:
+        showError(
+          "Credenciais incorretas",
+          "E-mail ou senha inválidos. Por favor, revise e tente novamente."
+        );
+        break;
+
+      case 404:
+        showError(
+          "Usuário não encontrado",
+          "Não foi possível localizar sua conta. Verifique o e-mail informado."
+        );
+        break;
+
+      case 500:
+        showError(
+          "Erro no servidor",
+          "Ocorreu um problema interno. Tente novamente mais tarde."
+        );
+        break;
+
+      case 0:
+      default:
+        showError(
+          "Erro no servidor",
+          "Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente."
+        );
+        break;
     }
-  }).catch(() => {
-    isLoading.value = false
-  })
+  } catch (error) {
+    showError(
+      "Erro inesperado",
+      "Houve um problema ao tentar realizar o login. Por favor, tente novamente."
+    );
+    console.error("Erro inesperado no login:", error);
+  } finally {
+    isLoading.value = false;
+  }
 }
+
 </script>
 
 <style scoped>
