@@ -15,18 +15,18 @@
       </div>
     </div>
 
-    <p class="forecaster-card-title">Previsão de tickets estourarem o SLA</p>
-    <SlaPredictionCard
-      v-show="slaPredictionData.length > 0 || slaPredictionLoading"
-      :predictionData="slaPredictionData"
-      :loading="slaPredictionLoading"
-    />
     <LoadingComponent v-show="insightLoading" />
-    <div v-show="!insightsData.length && !insightLoading" class="empty-insights-message">
+    <div v-show="!insightsData.length && !forecasterDate.length && !slaPredictionData.length" class="empty-insights-message">
       <p>Selecione um cliente específico no filtro para ver os insights do produto.</p>
     </div>
 
-    <div v-if="insightsData.length && forecasterDate.length">
+    <div v-if="insightsData.length && forecasterDate.length && slaPredictionData && !insightLoading ">
+      <p class="forecaster-card-title">Previsão de tickets estourarem o SLA</p>
+      <SlaPredictionCard
+        :predictionData="slaPredictionData"
+        :loading="slaPredictionLoading"
+      />
+
       <p class="forecaster-card-title">Previsão de sazonalidade e volume de tickets por produto</p>
       <div class="chart-card-full">
         <div class="chart-content-wrapper">
@@ -39,18 +39,12 @@
       </div>
 
       <h2 class="chart-title-main">Análise de Causas Raízes</h2>
-
-      <div v-if="insightsData.length && forecasterDate.length">
-        <h2 class="chart-title-main">Análise de Causas Raízes</h2>
         <ParetoChart
           v-if="selectedClient"
           :raw-pareto-data="rawParetoData"
           :selected-client="selectedClient"
           :loading="paretoLoading"
         />
-
-      </div>
-
     </div>
   </div>
 </template>
