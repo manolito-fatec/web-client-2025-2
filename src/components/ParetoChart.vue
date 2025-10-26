@@ -2,7 +2,6 @@
   <div class="chart-card-full">
     <LoadingComponent v-show="loading" />
     <div v-show="!loading" class="chart-content-wrapper">
-      <h2 class="chart-title-main">Análise de Causas Raízes</h2>
       <p class="chart-subtitle-pareto">Pareto por Subcategoria (Ocorrências x % Acumulado)</p>
       <div class="pareto-chart-wrapper">
         <VueChart type="bar" :data="paretoChartData" :options="paretoChartOptions" />
