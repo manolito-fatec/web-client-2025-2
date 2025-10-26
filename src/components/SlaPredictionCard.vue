@@ -1,7 +1,6 @@
 <template>
   <div class="card-container">
-    <LoadingComponent v-show="loading" />
-    <div v-show="!loading" class="content-wrapper">
+    <div class="content-wrapper">
       <div v-if="predictionData.length > 0">
         <p class="card-subtitle">
           Previsão baseada no tickets abertos das subcategorias abaixo:
@@ -24,7 +23,6 @@
 </template>
 
 <script setup lang="ts">
-import LoadingComponent from '@/components/LoadingComponent.vue'
 import type { SlaPredictionItem } from '@/types/InsightType/Insight.ts'
 
 defineProps<{
