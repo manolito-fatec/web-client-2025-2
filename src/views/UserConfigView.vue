@@ -3,7 +3,7 @@
         <Topbar :email="user.email" :tenant="user.tenant" />
 
         <div class="main-content-area">
-            <!-- <TransparencySidebar /> -->
+            <TransparencySidebar />
             <div class="user-portal-area">
                 <!-- <MySection />  -->
             </div>
@@ -17,7 +17,7 @@
 
 <script setup lang="ts">
 import Topbar from '@/components/configUser/Topbar.vue';
-// import TransparencySidebar from '@/components/configUser/TransparencySidebar.vue';
+import TransparencySidebar from '@/components/configUser/TransparencySidebar.vue';
 // import MySection from '@/components/configUser/MySection.vue';
 
 const user = {
