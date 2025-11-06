@@ -7,9 +7,11 @@ import Aura from '@primeuix/themes/aura'
 
 
 import App from './App.vue'
+import './index.css'
 import router from './router'
 import {definePreset} from "@primeuix/themes";
 import ToastService from 'primevue/toastservice';
+import 'primeicons/primeicons.css';
 
 const app = createApp(App)
 const pardalPreset = definePreset(Aura, {
