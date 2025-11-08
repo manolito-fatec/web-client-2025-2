@@ -1,17 +1,3 @@
-<script setup lang="ts">
-
-const mockUser = {
-    id: "usr_42",
-    email: "carlos.eduardo@cliente.com.br",
-    tenant: "cliente-sa",
-};
-
-
-function maskEmail(email: string): string {
-    return email.replace(/(^.).+(@)/, (_, a, b) => `${a}***${b}`);
-}
-</script>
-
 <template>
     <header class="topbar">
         <div class="topbar-content">
@@ -44,6 +30,20 @@ function maskEmail(email: string): string {
         </div>
     </header>
 </template>
+
+<script setup lang="ts">
+
+const mockUser = {
+    id: "usr_42",
+    email: "carlos.eduardo@cliente.com.br",
+    tenant: "cliente-sa",
+};
+
+
+function maskEmail(email: string): string {
+    return email.replace(/(^.).+(@)/, (_, a, b) => `${a}***${b}`);
+}
+</script>
 
 <style scoped>
 .topbar {

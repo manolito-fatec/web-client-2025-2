@@ -91,7 +91,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import Dialog from 'primevue/dialog'
 import Toast from 'primevue/toast'
