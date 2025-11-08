@@ -39,8 +39,8 @@
             </p>
 
             <template #footer>
-                <Button label="Cancelar" outlined @click="closeDeleteDialog" />
-                <Button label="Confirmar" icon="pi pi-check" @click="handleDelete" />
+                <Button label="Cancelar" outlined @click="closeDeleteDialog" class="btn-cancel" />
+                <Button label="Confirmar" icon="pi pi-check" @click="handleDelete" class="btn-check" />
             </template>
         </Dialog>
     </div>
@@ -59,7 +59,7 @@ import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
 
 import ProfileTab from './ProfileTab.vue'
-// import PrivacyTab from './PrivacyTab.vue'
+import PrivacyTab from './PrivacyTab.vue'
 // import SecurityTab from './SecurityTab.vue'
 // import AuditTab from './AuditTab.vue'
 
@@ -260,7 +260,7 @@ function handleDelete() {
 }
 
 .user-portal :deep(.p-tablist-active-bar) {
-  display: none;
+    display: none;
 }
 
 .user-portal :deep(.p-tab) {
@@ -330,5 +330,30 @@ function handleDelete() {
 .dialog-message {
     font-size: 14px;
     color: #334155;
+}
+
+.delete-dialog .btn-cancel {
+    background-color: transparent !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #475569 !important;
+    font-size: 14px !important;
+    white-space: nowrap;
+}
+
+.delete-dialog .btn-cancel:hover {
+    background-color: #f8fafc !important;
+    border-color: #94a3b8 !important;
+}
+
+.delete-dialog .btn-check {
+    background-color: #0f172a !important;
+    border-color: #0f172a !important;
+    font-size: 14px !important;
+    white-space: nowrap;
+}
+
+.delete-dialog .btn-check:hover {
+    background-color: #1e293b !important;
+    border-color: #1e293b !important;
 }
 </style>
