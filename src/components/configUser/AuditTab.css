@@ -1,0 +1,55 @@
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+}
+
+.header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: #f1f5f9;
+  border-radius: 12px;
+}
+
+.header-icon i {
+  font-size: 20px;
+  color: #475569;
+}
+
+.header-content {
+  flex: 1;
+}
+
+.header-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.header-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.audit-table {
+  font-size: 14px;
+}
+
+.btn-csv-export {
+    background-color: #0f172a !important;
+    border-color: #0f172a !important;
+    font-size: 14px !important;
+    white-space: nowrap;
+}
+
+.btn-csv-export:hover {
+    background-color: #1e293b !important;
+    border-color: #1e293b !important;
+}

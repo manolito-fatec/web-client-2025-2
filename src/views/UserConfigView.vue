@@ -10,7 +10,7 @@
         </div>
         
         <div class="app-footer">
-            © 2025 Sua Empresa — LGPD Center
+            © 2025 Manolito — LGPD Center
         </div>
     </div>
 </template>

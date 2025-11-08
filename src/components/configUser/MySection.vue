@@ -46,7 +46,7 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive } from 'vue'
 import Tabs from 'primevue/tabs'
 import TabList from 'primevue/tablist'
@@ -61,7 +61,7 @@ import { useToast } from 'primevue/usetoast'
 import ProfileTab from './ProfileTab.vue'
 import PrivacyTab from './PrivacyTab.vue'
 import SecurityTab from './SecurityTab.vue'
-// import AuditTab from './AuditTab.vue'
+import AuditTab from './AuditTab.vue'
 
 const toast = useToast()
 const toastRef = ref(null)
