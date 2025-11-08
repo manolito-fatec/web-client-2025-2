@@ -60,7 +60,7 @@ import { useToast } from 'primevue/usetoast'
 
 import ProfileTab from './ProfileTab.vue'
 import PrivacyTab from './PrivacyTab.vue'
-// import SecurityTab from './SecurityTab.vue'
+import SecurityTab from './SecurityTab.vue'
 // import AuditTab from './AuditTab.vue'
 
 const toast = useToast()
