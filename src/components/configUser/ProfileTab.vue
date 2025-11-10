@@ -27,15 +27,13 @@
                 </div>
 
                 <div class="form-actions">
-                    <Button label="Salvar" icon="pi pi-check" @click="$emit('save-profile')" class="btn-primary" />
-                    <Button label="Cancelar" outlined @click="$emit('cancel-changes')"
-                        class="btn-outline" />
+                    <Button label="Salvar" icon="pi pi-check" @click="handleSave" class="btn-primary" />
+
+                    <Button label="Cancelar" outlined @click="$emit('cancel-changes')" class="btn-outline"
+                        type="button" />
                 </div>
             </div>
 
-            <div v-if="accountClosed" class="account-closed-alert">
-                Sua conta está em processo de encerramento e eliminação conforme política de retenção.
-            </div>
         </template>
     </Card>
 </template>
@@ -45,8 +43,11 @@ import './ProfileTab.css'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
+import { useToast } from 'primevue/usetoast'
 
-defineProps({
+const toast = useToast()
+
+const props = defineProps({
     profile: {
         type: Object,
         required: true
@@ -57,5 +58,22 @@ defineProps({
     }
 })
 
-defineEmits(['save-profile', 'cancel-changes'])
+const emit = defineEmits(['save-profile', 'cancel-changes'])
+
+const handleSave = () => {
+    if (!props.profile.name || !props.profile.email) {
+
+        toast.add({
+            severity: 'error',
+            summary: 'Campos obrigatórios',
+            detail: 'Por favor, preencha os campos vazios.',
+            life: 3000
+        })
+
+        return;
+    }
+
+    emit('save-profile')
+}
+
 </script>
