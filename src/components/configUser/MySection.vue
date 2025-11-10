@@ -104,13 +104,13 @@ function nowStr() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
-function csvString(rows) {
+function csvString(rows: (string | number)[][]) {
     return rows
         .map((row) => row.map((v) => `"${String(v).replaceAll('"', '""')}"`).join(','))
         .join('\n')
 }
 
-function addAudit(evento, detalhe) {
+function addAudit(evento: string, detalhe: string) {
     const entry = {
         id: audit.value.length + 1,
         evento,

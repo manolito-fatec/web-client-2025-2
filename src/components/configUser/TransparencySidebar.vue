@@ -99,7 +99,7 @@ import { useToast } from 'primevue/usetoast'
 import { BookOpen, Eye, Mail, Globe, CheckCircle2 } from 'lucide-vue-next'
 
 const termsOpen = ref(false)
-const termsAcceptedAt = ref(null)
+const termsAcceptedAt = ref<string | null>(null);
 const toast = useToast()
 
 function nowStr() {
