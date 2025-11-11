@@ -22,7 +22,7 @@
 
                     <div class="form-field">
                         <label for="email">E-mail corporativo</label>
-                        <InputText id="email" v-model="profile.email" class="w-full" />
+                        <InputText id="email" v-model="profile.email" class="w-full" readonly />
                     </div>
                 </div>
 

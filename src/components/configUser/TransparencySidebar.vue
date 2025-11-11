@@ -34,11 +34,7 @@
         <p class="section-label">DPO & Contatos</p>
         <div class="contact-item">
           <Mail class="icon-sm" />
-          dpo@suaempresa.com
-        </div>
-        <div class="contact-item">
-          <Globe class="icon-sm" />
-          privacidade.suaempresa.com
+          manolito.pardal@gmail.com
         </div>
       </div>
     </div>
