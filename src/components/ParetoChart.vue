@@ -27,7 +27,7 @@ import type { FilterCompany } from '@/types/Company'
 
 const props = defineProps<{
   rawParetoData: RootCauseAnalysisData
-  selectedClient: FilterCompany
+  selectedClients: FilterCompany[]
   loading: boolean
 }>()
 
@@ -56,19 +56,26 @@ ChartJS.register(
 )
 
 const sortedParetoData = computed(() => {
-  const clientCode = props.selectedClient.code
+  const selectedClientCodes = props.selectedClients.map(client => client.code);
   const data = props.rawParetoData
-  if (Object.keys(data).length === 0) return []
+
+  if (Object.keys(data).length === 0 || selectedClientCodes.length === 0) return []
 
   const dataArray = Object.entries(data).map(([label, counts]) => {
     let occurrenceValue = 0
-    if (clientCode === 'ALL') {
+
+    if (selectedClientCodes.some(code => code === 'ALL')) {
       if (counts && typeof counts === 'object') {
         occurrenceValue = Object.values(counts).reduce((sum, value) => sum + value, 0)
       }
     } else {
-      occurrenceValue = (counts as Record<string, number>)?.[clientCode] || 0
+      if (counts && typeof counts === 'object') {
+        occurrenceValue = selectedClientCodes.reduce((sum, clientCode) => {
+          return sum + ((counts as Record<string, number>)?.[clientCode] || 0)
+        }, 0)
+      }
     }
+
     return { label, occurrence: occurrenceValue }
   })
 
@@ -154,14 +161,13 @@ const paretoChartOptions = computed<ChartOptions<'bar'>>(() => ({
             if (context.dataset.yAxisID === 'y1') {
               label += `: ${context.parsed.y.toFixed(1)}%`
             } else {
-              label += `: ${context.parsed.y}`
+              label += `: ${context.parsed.y.toFixed(0)}`
             }
           }
           return label
         },
         title: function (context: TooltipItem<'bar' | 'line'>[]) {
-          const barValue = context.find((c: TooltipItem<'bar' | 'line'>) => c.dataset.type === 'bar')?.parsed.y || 0
-          return `${context[0].label}: ${barValue}`
+          return `${context[0].label}`
         },
       },
     },
