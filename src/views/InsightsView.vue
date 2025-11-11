@@ -3,15 +3,34 @@
     <NavigationBar></NavigationBar>
 
     <div class="filter-card">
-      <div class="p-field">
-        <label for="client-filter">Cliente</label>
-        <Dropdown
-          id="client-filter"
-          v-model="selectedClient"
-          :options="clientOptions"
-          optionLabel="name"
-          class="client-dropdown"
-        />
+      <div class="p-field-group">
+
+        <div class="p-field">
+          <label for="client-filter">Cliente(s)</label>
+          <MultiSelect
+            id="client-filter"
+            v-model="selectedClients"
+            :options="clientOptions"
+            optionLabel="name"
+            placeholder="Selecione um ou mais clientes"
+            class="client-multiselect"
+            showClear
+          />
+        </div>
+
+        <div class="p-field">
+          <label for="product-filter">Produto(s)</label>
+          <MultiSelect
+            id="product-filter"
+            v-model="selectedProducts"
+            :options="productOptions"
+            optionLabel="name"
+            placeholder="Selecione um ou mais produtos"
+            class="client-multiselect"
+            showClear
+          />
+        </div>
+
       </div>
     </div>
 
@@ -20,7 +39,7 @@
       <p>Selecione um cliente específico no filtro para ver os insights do produto.</p>
     </div>
 
-    <div v-if="insightsData.length && forecasterDate.length && slaPredictionData && !insightLoading ">
+    <div v-if="insightsData.length && forecasterDate.length && slaPredictionData.length && !insightLoading ">
       <p class="forecaster-card-title">Previsão de tickets estourarem o SLA</p>
       <SlaPredictionCard
         :predictionData="slaPredictionData"
@@ -39,12 +58,11 @@
       </div>
 
       <h2 class="chart-title-main">Análise de Causas Raízes</h2>
-        <ParetoChart
-          v-if="selectedClient"
-          :raw-pareto-data="rawParetoData"
-          :selected-client="selectedClient"
-          :loading="paretoLoading"
-        />
+      <ParetoChart
+        v-if="selectedClients.length"
+        :raw-pareto-data="rawParetoData"
+        :selected-clients="selectedClients" :loading="paretoLoading"
+      />
     </div>
   </div>
 </template>
@@ -53,7 +71,7 @@
 import { onMounted, ref, type Ref, watch, computed } from 'vue'
 
 import NavigationBar from '@/components/navigationBar/NavigationBar.vue'
-import Dropdown from 'primevue/dropdown'
+import MultiSelect from 'primevue/multiselect'
 import LoadingComponent from '@/components/LoadingComponent.vue'
 import InsightCard from '@/components/insightSection/InsightCard.vue'
 import ParetoChart from '@/components/ParetoChart.vue'
@@ -71,8 +89,11 @@ import type { FilterCompany } from '@/types/Company'
 import type { SelectListOption } from '@/types/SelectListOption'
 import type { Forecaster, ProductInsight } from '@/types/InsightType/Insight.ts'
 
-const selectedClient = ref<FilterCompany>()
+const selectedClients: Ref<FilterCompany[]> = ref([])
 const clientOptions: Ref<FilterCompany[]> = ref([])
+
+const selectedProducts: Ref<FilterCompany[]> = ref([])
+const productOptions: Ref<FilterCompany[]> = ref([])
 
 const paretoLoading: Ref<boolean> = ref(false)
 const rawParetoData: Ref<RootCauseAnalysisData> = ref({})
@@ -87,24 +108,34 @@ const slaPredictionData: Ref<SlaPredictionItem[]> = ref([])
 const currentPage = ref(1)
 const itemsPerPage = ref(3)
 
-const loadClientOptions = async () => {
+const loadFilterOptions = async () => {
   try {
-    const filterData = await fetchFilterOptions(3)
-    const allCompanies = filterData.allCompanies as unknown as SelectListOption[]
-    const companyOptions: FilterCompany[] = allCompanies.map((company) => ({
+    const [clientFilterData, productFilterData] = await Promise.all([
+      fetchFilterOptions(3),
+      fetchFilterOptions(1)
+    ]);
+
+    const allCompanies = clientFilterData.allCompanies as unknown as SelectListOption[]
+    clientOptions.value = allCompanies.map((company) => ({
       name: company.name,
       code: company.id!.toString(),
     }))
-    clientOptions.value = companyOptions
+
+    const allProducts = productFilterData.allProducts as unknown as SelectListOption[]
+    productOptions.value = allProducts.map((product) => ({
+      name: product.name,
+      code: product.id!.toString(),
+    }))
+
   } catch (error) {
-    console.error('Error fetching filter options for clients:', error)
+    console.error('Error fetching filter options:', error)
   }
 }
 
-const fetchParetoData = async (clientCode: string) => {
+const fetchParetoData = async (clientCodes: string[]) => {
   paretoLoading.value = true
   try {
-    const clientIdParam = clientCode === 'ALL' ? null : clientCode
+    const clientIdParam = clientCodes.length > 0 ? clientCodes.join(',') : null
     const apiData = await getRootCauseAnalysis(clientIdParam)
     rawParetoData.value = apiData || {}
   } catch (error) {
@@ -115,8 +146,11 @@ const fetchParetoData = async (clientCode: string) => {
   }
 }
 
-const fetchInsightsData = async (clientCode: string | null) => {
-  if (clientCode === 'ALL' || clientCode === null) {
+const fetchInsightsData = async () => {
+  const clientCodes = selectedClients.value.map(client => client.code);
+  const productCodes = selectedProducts.value.map(product => product.code);
+
+  if (clientCodes.length === 0 || productCodes.length === 0) {
     insightsData.value = []
     insightLoading.value = false
     return
@@ -124,17 +158,11 @@ const fetchInsightsData = async (clientCode: string | null) => {
 
   insightLoading.value = true
   try {
-    const customerId = parseInt(clientCode)
+    const rawInsights = await fetchProductInsights(clientCodes, productCodes);
 
-    if (!isNaN(customerId)) {
-      const rawInsights = await fetchProductInsights(customerId)
+    insightsData.value = cleanInsightsData(rawInsights.productInsightsData)
+    forecasterDate.value = rawInsights.seasonalityInsightData
 
-      insightsData.value = cleanInsightsData(rawInsights.productInsightsData)
-      forecasterDate.value = rawInsights.seasonalityInsightData
-    } else {
-      console.warn('Invalid client ID for insights:', clientCode)
-      insightsData.value = []
-    }
   } catch (error) {
     console.error('Erro ao buscar insights:', error)
     insightsData.value = []
@@ -197,24 +225,31 @@ function cleanInsightsData(insights: ProductInsight[]): ProductInsight[] {
   }))
 }
 
-watch(
-  selectedClient,
-  (newClient) => {
-    if (!!newClient) {
-      const clientCode = newClient.code
-      fetchParetoData(clientCode)
-      fetchInsightsData(clientCode)
-      fetchSlaPredictionData(clientCode)
-    } else {
-      slaPredictionData.value = []
-    }
-  },
-  { deep: true },
-)
+watch(selectedClients, (newClients) => {
+  const clientCode = newClients.length > 0 ? newClients[0].code : null;
+  const clientCodesForPareto = newClients.map(client => client.code);
+
+  if (newClients.length > 0) {
+    fetchParetoData(clientCodesForPareto)
+    fetchSlaPredictionData(clientCode)
+  } else {
+    rawParetoData.value = {}
+    slaPredictionData.value = []
+    selectedProducts.value = []
+  }
+
+  fetchInsightsData()
+}, { deep: true });
+
+watch(selectedProducts, () => {
+  fetchInsightsData()
+}, { deep: true });
+
 
 onMounted(async () => {
-  await loadClientOptions()
+  await loadFilterOptions()
 })
+
 </script>
 
 <style scoped>
@@ -239,7 +274,33 @@ onMounted(async () => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 2.5rem;
   display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 2rem;
+}
+
+.p-field-group {
+  display: flex;
+  gap: 2rem;
+  width: 100%;
+}
+
+.p-field {
+  display: flex;
   flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  max-width: 20rem;
+}
+
+.p-field label {
+  font-weight: bold;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.client-multiselect {
+  width: 100%;
 }
 
 .chart-card-full {
@@ -276,23 +337,6 @@ onMounted(async () => {
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
-}
-
-.p-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.p-field label {
-  font-weight: bold;
-  color: #555;
-  font-size: 0.9rem;
-}
-
-.client-dropdown {
-  width: 15rem;
-  max-width: 100%;
 }
 
 .insight-section-wrapper {
