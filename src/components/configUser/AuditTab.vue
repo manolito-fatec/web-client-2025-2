@@ -11,18 +11,19 @@
         </div>
       </div>
     </template>
-    
+
     <template #content>
-      <DataTable :value="auditData" class="audit-table" stripedRows>
-        <Column field="id" header="#" style="width: 60px"></Column>
-        <Column field="evento" header="Evento"></Column>
-        <Column field="por" header="Por"></Column>
-        <Column field="quando" header="Quando"></Column>
-        <Column field="onde" header="Onde"></Column>
-        <Column field="detalhe" header="Detalhe"></Column>
+      <DataTable :value="auditData" paginator :rows="5" size="small" stripedRows class="audit-table">
+        <template #empty>Nenhum registro encontrado.</template>
+
+        <Column field="event" header="Evento"></Column>
+        <Column field="user" header="Usuário"></Column>
+        <Column field="date" header="Data"></Column>
+        <Column field="locale" header="IP"></Column>
+        <Column field="details" header="Detalhes"></Column>
       </DataTable>
     </template>
-    
+
     <template #footer>
       <Button label="Exportar CSV" icon="pi pi-download" @click="$emit('export-audit')" class="btn-csv-export" />
     </template>
@@ -39,7 +40,8 @@ import Column from 'primevue/column'
 defineProps({
   auditData: {
     type: Array,
-    required: true
+    required: true,
+    default: () => []
   }
 })
 

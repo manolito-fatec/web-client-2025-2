@@ -5,20 +5,35 @@ export interface UserProfile {
     name: string;
     email: string;
     phone?: string;
-    role?: any; 
+    role?: any;
+    company?: string;
+}
+
+export interface AuditDto {
+  event: string;
+  user: string;
+  date: string;
+  locale: string;
+  details: string;
+}
+
+export interface UserProfileInformation {
+  appUser: UserProfile;
+  auditInfomation: AuditDto[];
 }
 
 export const userService = {
-    /**
-     * Busca os dados de um usuário pelo ID.
+/**
+     * Adicione a nova função para buscar TUDO
+     * Busca todas as informações (perfil + auditoria) para a tela de perfil.
      */
-    async getUserById(id: number): Promise<UserProfile> {
+    async getProfileInformation(id: number): Promise<UserProfileInformation> {
         try {
-            const response = await api.get<UserProfile>(`/user/id/${id}`);
+            const response = await api.get<UserProfileInformation>(`/user/information/${id}`);
             return response.data;
         } catch (error) {
-            console.error('Erro ao buscar usuário:', error);
-            throw new Error('Não foi possível carregar os dados do usuário.');
+            console.error('Erro ao buscar informações do perfil:', error);
+            throw new Error('Não foi possível carregar os dados do perfil e auditoria.');
         }
     },
 

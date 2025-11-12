@@ -57,7 +57,7 @@ import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
-import { userService, type UserProfile } from '@/api/UserService'
+import { userService, type UserProfile, type AuditDto } from '@/api/UserService'
 
 import ProfileTab from './ProfileTab.vue'
 import PrivacyTab from './PrivacyTab.vue'
@@ -79,20 +79,17 @@ const profile = reactive<UserProfile>({
     id: 0,
     name: '',
     email: '',
-    role: 'Analista',
+    company: '',
+    role: { id: 0, rlName: '' },
 })
 
 const originalProfile = { ...profile }
 const showDeleteDialog = ref(false)
 const accountClosed = ref(false)
 
-const audit = ref([
-    { id: 1, evento: 'Login bem-sucedido', por: profile.email, quando: '2025-10-28 10:21', onde: '200.200.10.1', detalhe: 'login' },
-    { id: 2, evento: 'Download de portabilidade', por: profile.email, quando: '2025-10-28 10:28', onde: '200.200.10.1', detalhe: 'Export JSON' },
-    { id: 3, evento: 'Alteração de papel', por: 'admin@cliente.com.br', quando: '2025-10-27 16:00', onde: '10.0.0.5', detalhe: 'Analista → Gestor' }
-])
+const audit = ref<AuditDto[]>([])
 
-onMounted (async () => {
+onMounted(async () => {
     try {
         const userIdStr = sessionStorage.getItem('userId');
         if (!userIdStr) {
@@ -101,10 +98,17 @@ onMounted (async () => {
         }
 
         const userId = parseInt(userIdStr, 10);
-        const userData = await userService.getUserById(userId);
 
-        Object.assign(profile, userData);
-        Object.assign(originalProfile, userData);
+        const infoData = await userService.getProfileInformation(userId);
+
+        if (infoData.appUser) {
+            Object.assign(profile, infoData.appUser);
+            Object.assign(originalProfile, infoData.appUser);
+        }
+
+        audit.value = infoData.auditInfomation || [];
+
+        console.log("Logs carregados:", audit.value);
 
     } catch (error) {
         console.error(error);
@@ -124,13 +128,12 @@ function csvString(rows: (string | number)[][]) {
 }
 
 function addAudit(evento: string, detalhe: string) {
-    const entry = {
-        id: audit.value.length + 1,
-        evento,
-        por: profile.email,
-        quando: nowStr(),
-        onde: 'app',
-        detalhe
+    const entry: AuditDto = {
+        event: evento,
+        details: detalhe,
+        user: profile.email,
+        date: nowStr(),
+        locale: 'app'
     }
     audit.value = [entry, ...audit.value]
 }
@@ -140,7 +143,7 @@ async function saveProfile() {
         const updatedUser = await userService.updateUser(profile);
 
         Object.assign(originalProfile, updatedUser);
-        Object.assign(profile, updatedUser); 
+        Object.assign(profile, updatedUser);
 
         addAudit('Perfil atualizado', 'Correção de dados');
         toast.add({
@@ -198,7 +201,7 @@ function exportCSV() {
 function exportAudit() {
     const rows = [
         ['id', 'evento', 'por', 'quando', 'onde', 'detalhe'],
-        ...audit.value.map((x) => [x.id, x.evento, x.por, x.quando, x.onde, x.detalhe])
+        ...audit.value.map((x) => [x.event, x.user, x.date, x.locale, x.details])
     ]
     const csv = csvString(rows)
     const blob = new Blob([csv], { type: 'text/csv' })
