@@ -16,7 +16,7 @@
                 </TabPanel>
 
                 <TabPanel value="1">
-                    <PrivacyTab :profile="profile" :user="mockUser" @export-csv="exportCSV"
+                    <PrivacyTab :profile="profile" :user="profile" @export-csv="exportCSV"
                         @request-delete="showDeleteDialog = true" />
                 </TabPanel>
 
@@ -47,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import Tabs from 'primevue/tabs'
 import TabList from 'primevue/tablist'
 import Tab from 'primevue/tab'
@@ -57,11 +57,13 @@ import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
+import { userService } from '@/api/UserService'
 
 import ProfileTab from './ProfileTab.vue'
 import PrivacyTab from './PrivacyTab.vue'
 import SecurityTab from './SecurityTab.vue'
 import AuditTab from './AuditTab.vue'
+import type { AuditDto, UserProfile } from '@/types/ConfigUser/UserTypes'
 
 const toast = useToast()
 const toastRef = ref(null)
@@ -74,30 +76,46 @@ const tabs = [
     { value: '3', label: 'Auditoria' }
 ]
 
-const mockUser = {
-    id: 'usr_42',
-    name: 'Carlos Eduardo',
-    email: 'carlos.eduardo@cliente.com.br',
-    company: 'Cliente S/A',
-    role: 'Analista',
-    tenant: 'cliente-sa',
-    lastLogin: '2025-10-28T13:21:00Z'
-}
-
-const profile = reactive({
-    name: mockUser.name,
-    email: mockUser.email
+const profile = reactive<UserProfile>({
+    id: 0,
+    name: '',
+    email: '',
+    company: '',
+    role: { id: 0, rlName: '' },
 })
 
 const originalProfile = { ...profile }
 const showDeleteDialog = ref(false)
 const accountClosed = ref(false)
 
-const audit = ref([
-    { id: 1, evento: 'Login bem-sucedido', por: mockUser.email, quando: '2025-10-28 10:21', onde: '200.200.10.1', detalhe: 'login' },
-    { id: 2, evento: 'Download de portabilidade', por: mockUser.email, quando: '2025-10-28 10:28', onde: '200.200.10.1', detalhe: 'Export JSON' },
-    { id: 3, evento: 'Alteração de papel', por: 'admin@cliente.com.br', quando: '2025-10-27 16:00', onde: '10.0.0.5', detalhe: 'Analista → Gestor' }
-])
+const audit = ref<AuditDto[]>([])
+
+onMounted(async () => {
+    try {
+        const userIdStr = sessionStorage.getItem('userId');
+        if (!userIdStr) {
+            toast.add({ severity: 'error', summary: 'Erro', detail: 'ID do usuário não encontrado na sessão.', life: 3000 });
+            return;
+        }
+
+        const userId = parseInt(userIdStr, 10);
+
+        const infoData = await userService.getProfileInformation(userId);
+
+        if (infoData.appUser) {
+            Object.assign(profile, infoData.appUser);
+            Object.assign(originalProfile, infoData.appUser);
+        }
+
+        audit.value = infoData.auditInfomation || [];
+
+        console.log("Logs carregados:", audit.value);
+
+    } catch (error) {
+        console.error(error);
+        toast.add({ severity: 'error', summary: 'Erro ao carregar', detail: 'Não foi possível carregar os dados do perfil.', life: 3000 });
+    }
+})
 
 function nowStr() {
     const d = new Date()
@@ -111,26 +129,40 @@ function csvString(rows: (string | number)[][]) {
 }
 
 function addAudit(evento: string, detalhe: string) {
-    const entry = {
-        id: audit.value.length + 1,
-        evento,
-        por: profile.email,
-        quando: nowStr(),
-        onde: 'app',
-        detalhe
+    const entry: AuditDto = {
+        event: evento,
+        details: detalhe,
+        user: profile.email,
+        date: nowStr(),
+        locale: 'app'
     }
     audit.value = [entry, ...audit.value]
 }
 
-function saveProfile() {
-    Object.assign(originalProfile, profile)
-    addAudit('Perfil atualizado', 'Correção de dados')
-    toast.add({
-        severity: 'success',
-        summary: 'Perfil atualizado',
-        detail: 'Correção de dados (art. 18)',
-        life: 3000
-    })
+async function saveProfile() {
+    try {
+        const updatedUser = await userService.updateUser(profile);
+
+        Object.assign(originalProfile, updatedUser);
+        Object.assign(profile, updatedUser);
+
+        addAudit('Perfil atualizado', 'Correção de dados');
+        toast.add({
+            severity: 'success',
+            summary: 'Perfil atualizado',
+            detail: 'Seus dados foram salvos com sucesso.',
+            life: 3000
+        });
+
+    } catch (error) {
+        console.error(error);
+        toast.add({
+            severity: 'error',
+            summary: 'Erro ao salvar',
+            detail: 'Não foi possível salvar as alterações.',
+            life: 3000
+        });
+    }
 }
 
 function cancelChanges() {
@@ -147,15 +179,14 @@ function exportCSV() {
         ['campo', 'valor'],
         ['nome', profile.name],
         ['email', profile.email],
-        ['empresa', mockUser.company],
-        ['papel', mockUser.role]
+        ['papel', profile.role]
     ]
     const csv = csvString(rows)
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `portabilidade_${mockUser.id}.csv`
+    a.download = `portabilidade_${profile.id}.csv`
     a.click()
     URL.revokeObjectURL(url)
 
@@ -171,7 +202,7 @@ function exportCSV() {
 function exportAudit() {
     const rows = [
         ['id', 'evento', 'por', 'quando', 'onde', 'detalhe'],
-        ...audit.value.map((x) => [x.id, x.evento, x.por, x.quando, x.onde, x.detalhe])
+        ...audit.value.map((x) => [x.event, x.user, x.date, x.locale, x.details])
     ]
     const csv = csvString(rows)
     const blob = new Blob([csv], { type: 'text/csv' })

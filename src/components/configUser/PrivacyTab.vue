@@ -33,12 +33,8 @@
                 <span class="data-value">{{ profile.email }}</span>
               </div>
               <div class="data-item">
-                <span class="data-label">Empresa</span>
-                <span class="data-value">{{ user.company }}</span>
-              </div>
-              <div class="data-item">
                 <span class="data-label">Papel</span>
-                <span class="data-value">{{ user.role }}</span>
+                <span class="data-value">{{ user.role?.rlName }}</span>
               </div>
             </div>
           </template>

@@ -1,6 +1,6 @@
 <template>
     <div class="app-layout">
-        <Topbar :email="user.email" :tenant="user.tenant" />
+        <Topbar />
 
         <div class="main-content-area">
             <TransparencySidebar />
