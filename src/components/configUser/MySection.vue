@@ -57,12 +57,13 @@ import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
-import { userService, type UserProfile, type AuditDto } from '@/api/UserService'
+import { userService } from '@/api/UserService'
 
 import ProfileTab from './ProfileTab.vue'
 import PrivacyTab from './PrivacyTab.vue'
 import SecurityTab from './SecurityTab.vue'
 import AuditTab from './AuditTab.vue'
+import type { AuditDto, UserProfile } from '@/types/ConfigUser/UserTypes'
 
 const toast = useToast()
 const toastRef = ref(null)
