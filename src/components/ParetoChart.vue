@@ -24,7 +24,6 @@ import { Chart as VueChart } from 'vue-chartjs'
 import type { RootCauseAnalysisData } from '@/types/RootCauseAnalysisResponse'
 import type { FilterCompany } from '@/types/Company'
 
-
 const props = defineProps<{
   rawParetoData: RootCauseAnalysisData
   selectedClients: FilterCompany[]
@@ -133,18 +132,9 @@ const paretoChartData = computed<ChartData<'bar' | 'line', (number | null)[], st
 })
 
 const maxOccurrences = computed(() => {
-  const max = Math.max(...paretoOccurrences.value)
-  if (max === 0) return 1000
-  return Math.ceil((max * 1.05) / 100) * 100
-})
-
-const suggestedMinOccurrences = computed(() => {
-  const min = Math.min(...paretoOccurrences.value.filter(v => v > 0))
-  if (min === Infinity || min === 0) return 0
-  const suggestedMin = Math.floor(min / 100) * 100
-  const max = Math.max(...paretoOccurrences.value)
-  if ((max - min) > 200) return 0
-  return suggestedMin > 0 ? suggestedMin : 0
+  const totalSum = paretoOccurrences.value.reduce((sum, value) => sum + value, 0)
+  if (totalSum === 0) return 1000
+  return Math.ceil(totalSum / 1000) * 1000
 })
 
 const paretoChartOptions = computed<ChartOptions<'bar'>>(() => ({
@@ -175,18 +165,29 @@ const paretoChartOptions = computed<ChartOptions<'bar'>>(() => ({
   scales: {
     x: { type: 'category', grid: { display: false }, ticks: { maxRotation: 30, minRotation: 0 } },
     y: {
-      type: 'linear', position: 'left', min: suggestedMinOccurrences.value,
-      max: maxOccurrences.value, title: { display: false },
+      type: 'linear',
+      position: 'left',
+      min: 0,
+      max: maxOccurrences.value,
+      title: { display: false },
       ticks: {
-        stepSize: maxOccurrences.value === 0 ? 100
-          : Math.max(10, Math.ceil((maxOccurrences.value - suggestedMinOccurrences.value) / 10)),
+        stepSize:
+          maxOccurrences.value === 0 ? 100 : Math.max(1000, Math.ceil(maxOccurrences.value / 10)),
       },
       grid: { color: 'rgba(0, 0, 0, 0.1)' },
     },
     y1: {
-      type: 'linear', position: 'right', min: 0, max: 100,
-      ticks: { callback: function (value: any) { return value + '%' } },
-      border: { display: false }, grid: { drawOnChartArea: false },
+      type: 'linear',
+      position: 'right',
+      min: 0,
+      max: 100,
+      ticks: {
+        callback: function (value: any) {
+          return value + '%'
+        },
+      },
+      border: { display: false },
+      grid: { drawOnChartArea: false },
     },
   },
 }))
