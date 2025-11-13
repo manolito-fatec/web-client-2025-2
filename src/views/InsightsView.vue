@@ -3,57 +3,70 @@
     <NavigationBar></NavigationBar>
 
     <div class="filter-card">
-      <div class="p-field">
-        <label for="client-filter">Cliente</label>
-        <Dropdown
-          id="client-filter"
-          v-model="selectedClient"
-          :options="clientOptions"
-          optionLabel="name"
-          class="client-dropdown"
-        />
+      <div class="filter-controls">
+        <div class="p-field">
+          <label for="client-filter">Cliente</label>
+          <Dropdown id="client-filter" v-model="selectedClient" :options="clientOptions" optionLabel="name"
+            class="client-dropdown" />
+        </div>
+
+        <div class="action-buttons">
+          <Button type="button" label="Mais ações" icon="pi pi-chevron-down" iconPos="right" @click="toggleMenu"
+            aria-haspopup="true" aria-controls="overlay_menu" class="p-button-outlined" />
+          <Menu id="overlay_menu" ref="menu" :model="exportOptions" :popup="true" />
+        </div>
       </div>
     </div>
 
-    <LoadingComponent v-show="insightLoading" />
-    <div v-show="!insightsData.length && !forecasterDate.length && !slaPredictionData.length" class="empty-insights-message">
+    <LoadingComponent v-show="insightLoading || exporting" />
+
+    <div v-if="exporting" class="export-overlay">
+      <p>Gerando relatório, por favor aguarde...</p>
+    </div>
+
+    <div v-show="!insightsData.length && !forecasterDate.length && !slaPredictionData.length"
+      class="empty-insights-message">
       <p>Selecione um cliente específico no filtro para ver os insights do produto.</p>
     </div>
 
-    <div v-if="insightsData.length && forecasterDate.length && slaPredictionData && !insightLoading ">
-      <p class="forecaster-card-title">Previsão de tickets estourarem o SLA</p>
-      <SlaPredictionCard
-        :predictionData="slaPredictionData"
-        :loading="slaPredictionLoading"
-      />
+    <div v-if="insightsData.length && forecasterDate.length && slaPredictionData && !insightLoading"
+      class="report-content" ref="reportContainer">
 
-      <p class="forecaster-card-title">Previsão de sazonalidade e volume de tickets por produto</p>
-      <div class="chart-card-full">
-        <div class="chart-content-wrapper">
-          <ForecasterCard :forecaster="forecasterDate"></ForecasterCard>
+      <div ref="slaSection">
+        <p class="forecaster-card-title">Previsão de tickets estourarem o SLA</p>
+        <SlaPredictionCard :predictionData="slaPredictionData" :loading="slaPredictionLoading" />
+      </div>
+
+      <div ref="forecasterSection">
+        <p class="forecaster-card-title">Previsão de sazonalidade e volume de tickets por produto</p>
+        <div class="chart-card-full">
+          <div class="chart-content-wrapper">
+            <ForecasterCard :forecaster="forecasterDate"></ForecasterCard>
+          </div>
         </div>
       </div>
 
-      <div class="insight-section-wrapper">
+      <div class="insight-section-wrapper" ref="insightSection">
         <InsightCard :insights="insightsData" />
       </div>
 
-      <h2 class="chart-title-main">Análise de Causas Raízes</h2>
-        <ParetoChart
-          v-if="selectedClient"
-          :raw-pareto-data="rawParetoData"
-          :selected-client="selectedClient"
-          :loading="paretoLoading"
-        />
+      <div ref="paretoSection">
+        <h2 class="chart-title-main">Análise de Causas Raízes</h2>
+        <ParetoChart v-if="selectedClient" :raw-pareto-data="rawParetoData" :selected-client="selectedClient"
+          :loading="paretoLoading" />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref, type Ref, watch, computed } from 'vue'
+import html2canvas from 'html2canvas'
 
 import NavigationBar from '@/components/navigationBar/NavigationBar.vue'
 import Dropdown from 'primevue/dropdown'
+import Button from 'primevue/button'
+import Menu from 'primevue/menu'
 import LoadingComponent from '@/components/LoadingComponent.vue'
 import InsightCard from '@/components/insightSection/InsightCard.vue'
 import ParetoChart from '@/components/ParetoChart.vue'
@@ -65,6 +78,9 @@ import { getRootCauseAnalysis } from '@/api/RootCauseAnalysisApi'
 import { fetchProductInsights } from '@/api/InsightCardApi'
 import { fetchFilterOptions } from '@/api/FiltersApi'
 import { fetchSlaPrediction } from '@/api/SlaPredictionApi'
+
+import { exportCsv, exportPdf } from '@/api/ExportApi'
+import type { PdfExportRequest } from '@/types/InsightType/ExportType'
 
 import type { RootCauseAnalysisData } from '@/types/RootCauseAnalysisResponse'
 import type { FilterCompany } from '@/types/Company'
@@ -78,6 +94,7 @@ const paretoLoading: Ref<boolean> = ref(false)
 const rawParetoData: Ref<RootCauseAnalysisData> = ref({})
 
 const insightLoading: Ref<boolean> = ref(false)
+const exporting = ref(false)
 const insightsData: Ref<ProductInsight[]> = ref([])
 const forecasterDate: Ref<Forecaster[]> = ref([])
 
@@ -86,6 +103,98 @@ const slaPredictionData: Ref<SlaPredictionItem[]> = ref([])
 
 const currentPage = ref(1)
 const itemsPerPage = ref(3)
+
+const menu = ref();
+const slaSection = ref<HTMLElement | null>(null);
+const forecasterSection = ref<HTMLElement | null>(null);
+const paretoSection = ref<HTMLElement | null>(null);
+
+const insightSection = ref<HTMLElement | null>(null);
+
+
+const exportOptions = ref([
+  {
+    label: 'Exportar CSV',
+    icon: 'pi pi-file-excel',
+    command: () => handleExportCsv()
+  },
+  {
+    label: 'Exportar PDF',
+    icon: 'pi pi-file-pdf',
+    command: () => handleExportPdf()
+  }
+]);
+
+const toggleMenu = (event: any) => {
+  menu.value.toggle(event);
+};
+
+
+const handleExportCsv = async () => {
+  try {
+    const clientId = selectedClient.value && selectedClient.value.code !== 'ALL'
+      ? parseInt(selectedClient.value.code)
+      : undefined;
+
+    await exportCsv(clientId);
+  } catch (error) {
+    console.error("Falha no download do CSV", error);
+
+  }
+}
+
+
+const handleExportPdf = async () => {
+  exporting.value = true;
+  try {
+    const graphsBase64: string[] = [];
+
+
+    if (slaSection.value) {
+      const canvas = await html2canvas(slaSection.value, {
+        scale: 2,
+        useCORS: true
+      });
+      graphsBase64.push(canvas.toDataURL('image/png'));
+    }
+
+
+    if (forecasterSection.value) {
+      const canvas = await html2canvas(forecasterSection.value, { scale: 2 });
+      graphsBase64.push(canvas.toDataURL('image/png'));
+    }
+
+
+    if (insightSection.value) {
+
+      const canvas = await html2canvas(insightSection.value, { scale: 2 });
+      graphsBase64.push(canvas.toDataURL('image/png'));
+    }
+
+
+    if (paretoSection.value) {
+      const canvas = await html2canvas(paretoSection.value, { scale: 2 });
+      graphsBase64.push(canvas.toDataURL('image/png'));
+    }
+
+    const clientId = selectedClient.value && selectedClient.value.code !== 'ALL'
+      ? parseInt(selectedClient.value.code)
+      : undefined;
+
+    const requestBody: PdfExportRequest = {
+      reportTitle: `Relatório de Insights - ${selectedClient.value?.name || 'Geral'}`,
+      graphImagesBase64: graphsBase64,
+      clientId: clientId,
+    };
+
+    await exportPdf(requestBody);
+
+  } catch (error) {
+    console.error("Falha ao gerar PDF", error);
+  } finally {
+    exporting.value = false;
+  }
+}
 
 const loadClientOptions = async () => {
   try {
@@ -218,6 +327,30 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.filter-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.export-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+  color: #555;
+  gap: 1rem;
+}
+
 .insight-container {
   font-family: Arial, sans-serif;
   padding: 2rem;
