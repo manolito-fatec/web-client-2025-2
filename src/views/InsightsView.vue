@@ -35,8 +35,8 @@
     </div>
 
     <LoadingComponent v-show="insightLoading" />
-    <div v-show="!insightsData.length && !forecasterDate.length && !slaPredictionData.length" class="empty-insights-message">
-      <p>Selecione um cliente específico no filtro para ver os insights do produto.</p>
+    <div v-show="!insightsData.length && !forecasterDate.length && !slaPredictionData.length && !insightLoading" class="empty-insights-message">
+      <p>Selecione um cliente e/ou produto no filtro para visualizar os insights.</p>
     </div>
 
     <div v-if="insightsData.length && forecasterDate.length && slaPredictionData.length && !insightLoading ">
@@ -111,8 +111,8 @@ const itemsPerPage = ref(3)
 const loadFilterOptions = async () => {
   try {
     const [clientFilterData, productFilterData] = await Promise.all([
-      fetchFilterOptions(3),
-      fetchFilterOptions(1)
+      fetchFilterOptions(10),
+      fetchFilterOptions(10)
     ]);
 
     const allCompanies = clientFilterData.allCompanies as unknown as SelectListOption[]
@@ -150,8 +150,9 @@ const fetchInsightsData = async () => {
   const clientCodes = selectedClients.value.map(client => client.code);
   const productCodes = selectedProducts.value.map(product => product.code);
 
-  if (clientCodes.length === 0 || productCodes.length === 0) {
+  if (clientCodes.length === 0) {
     insightsData.value = []
+    forecasterDate.value = []
     insightLoading.value = false
     return
   }
@@ -235,6 +236,8 @@ watch(selectedClients, (newClients) => {
   } else {
     rawParetoData.value = {}
     slaPredictionData.value = []
+    insightsData.value = []
+    forecasterDate.value = []
     selectedProducts.value = []
   }
 
@@ -249,7 +252,6 @@ watch(selectedProducts, () => {
 onMounted(async () => {
   await loadFilterOptions()
 })
-
 </script>
 
 <style scoped>
