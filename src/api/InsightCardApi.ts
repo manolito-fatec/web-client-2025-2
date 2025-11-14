@@ -21,8 +21,8 @@ export async function fetchProductInsights(
   try {
     const response = await api.get<InsightApiResponse>(url, {
       params: {
-        customerId: customerIdParam,
-        productId: productIdParam
+        customerIds: customerIdParam,
+        productIds: productIdParam
       }
     });
 
