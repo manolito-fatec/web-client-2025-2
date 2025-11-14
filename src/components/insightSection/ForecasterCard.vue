@@ -113,8 +113,11 @@ function calculateChartData(data: Forecaster[]) {
     const color = colorList[index % colorList.length]
 
     const dataPoints = labels.value.map((label) => {
-      const item = grouped.value[productName].find((d) => formatMonth(d.futureDate) === label)
-      return item ? item.totalTickets : 0
+      const item = grouped.value[productName]
+        .filter((d) => formatMonth(d.futureDate) === label)
+        .reduce((sum, item) => sum + item.totalTickets, 0)
+
+      return item
     })
 
     return {
