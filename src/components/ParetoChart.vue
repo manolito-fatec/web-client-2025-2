@@ -58,7 +58,7 @@ const sortedParetoData = computed(() => {
   const selectedClientCodes = props.selectedClients.map(client => client.code);
   const data = props.rawParetoData
 
-  if (Object.keys(data).length === 0 || selectedClientCodes.length === 0) return []
+  if (Object.keys(data).length === 0) return []
 
   const dataArray = Object.entries(data).map(([label, counts]) => {
     let occurrenceValue = 0

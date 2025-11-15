@@ -87,7 +87,7 @@
         <ParetoChart
           v-if="selectedClients.length || selectedProducts.length"
           :raw-pareto-data="rawParetoData"
-          :selected-clients="selectedClients"
+          :selected-clients="clientsForPareto"
           :loading="paretoLoading"
         />
       </div>
@@ -161,6 +161,13 @@ const exportOptions = ref([
     command: () => handleExportPdf(),
   },
 ])
+
+const clientsForPareto = computed(() => {
+  if (selectedProducts.value.length > 0 && selectedClients.value.length === 0) {
+    return clientOptions.value
+  }
+  return selectedClients.value
+})
 
 const toggleMenu = (event: any) => {
   menu.value.toggle(event)
