@@ -59,7 +59,7 @@
 
       <h2 class="chart-title-main">Análise de Causas Raízes</h2>
       <ParetoChart
-        v-if="selectedClients.length"
+        v-if="selectedClients.length || selectedProducts.length"
         :raw-pareto-data="rawParetoData"
         :selected-clients="selectedClients" :loading="paretoLoading"
       />
@@ -121,6 +121,8 @@ const loadFilterOptions = async () => {
       code: company.id!.toString(),
     }))
 
+    selectedClients.value = [...clientOptions.value];
+
     const allProducts = productFilterData.allProducts as unknown as SelectListOption[]
     productOptions.value = allProducts.map((product) => ({
       name: product.name,
@@ -147,8 +149,19 @@ const fetchParetoData = async (clientCodes: string[]) => {
 }
 
 const fetchInsightsData = async () => {
-  const clientCodes = selectedClients.value.map(client => client.code);
+  let clientCodes = selectedClients.value.map(client => client.code);
   const productCodes = selectedProducts.value.map(product => product.code);
+
+  if (clientCodes.length === 0) {
+    if (productCodes.length > 0) {
+      clientCodes = clientOptions.value.map(client => client.code);
+    } else {
+      insightsData.value = []
+      forecasterDate.value = []
+      insightLoading.value = false
+      return
+    }
+  }
 
   if (clientCodes.length === 0) {
     insightsData.value = []
@@ -227,30 +240,53 @@ function cleanInsightsData(insights: ProductInsight[]): ProductInsight[] {
 }
 
 watch(selectedClients, (newClients) => {
-  const clientCode = newClients.length > 0 ? newClients[0].code : null;
+  const clientCodeForSLA = newClients.length > 0 ? newClients[0].code : null;
   const clientCodesForPareto = newClients.map(client => client.code);
 
   if (newClients.length > 0) {
     fetchParetoData(clientCodesForPareto)
-    fetchSlaPredictionData(clientCode)
-  } else {
+    fetchSlaPredictionData(clientCodeForSLA)
+  } else if (selectedProducts.value.length === 0) {
     rawParetoData.value = {}
     slaPredictionData.value = []
     insightsData.value = []
     forecasterDate.value = []
-    selectedProducts.value = []
+  } else {
+    rawParetoData.value = {}
+    slaPredictionData.value = []
   }
 
   fetchInsightsData()
 }, { deep: true });
 
-watch(selectedProducts, () => {
+watch(selectedProducts, (newProducts) => {
+  if (newProducts.length > 0 && selectedClients.value.length === 0) {
+    const allClientCodes = clientOptions.value.map(client => client.code);
+    const clientCodeForSLA = allClientCodes.length > 0 ? allClientCodes[0] : null;
+
+    fetchParetoData(allClientCodes);
+    fetchSlaPredictionData(clientCodeForSLA);
+  } else if (newProducts.length === 0 && selectedClients.value.length === 0) {
+    rawParetoData.value = {}
+    slaPredictionData.value = []
+  }
+
   fetchInsightsData()
 }, { deep: true });
 
 
 onMounted(async () => {
   await loadFilterOptions()
+
+  const clientCodesForPareto = selectedClients.value.map(client => client.code);
+  const clientCodeForSLA = selectedClients.value.length > 0 ? selectedClients.value[0].code : null;
+
+  if (selectedClients.value.length > 0 || selectedProducts.value.length > 0) {
+    await fetchParetoData(clientCodesForPareto)
+    await fetchSlaPredictionData(clientCodeForSLA)
+  }
+
+  await fetchInsightsData()
 })
 </script>
 
