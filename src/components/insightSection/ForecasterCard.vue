@@ -57,7 +57,7 @@ const chartData = ref<ChartDataStructure>({
   datasets: [],
 })
 const sumMonthTickets = ref<MonthTicket[]>([])
-const colorList = ['#003366', '#1E4E8D', '#2962FF', '#42A5F5', '#90CAF9', '#BBDEFB']
+const colorList = ['#1F77B4', '#FF7F0E', '#2CA02C', '#D62728', '#9467BD', '#8C564B']
 
 function formatMonth(dateStr: string) {
   const date = new Date(dateStr)
