@@ -4,7 +4,6 @@
 
     <div class="filter-card">
       <div class="p-field-group">
-
         <div class="p-field">
           <label for="client-filter">Cliente(s)</label>
           <MultiSelect
@@ -31,47 +30,79 @@
           />
         </div>
 
+        <div class="action-buttons">
+          <Button
+            type="button"
+            label="Mais ações"
+            icon="pi pi-chevron-down"
+            iconPos="right"
+            @click="toggleMenu"
+            aria-haspopup="true"
+            aria-controls="overlay_menu"
+            class="p-button-outlined"
+          />
+          <Menu id="overlay_menu" ref="menu" :model="exportOptions" :popup="true" />
+        </div>
       </div>
     </div>
 
-    <LoadingComponent v-show="insightLoading" />
-    <div v-show="!insightsData.length && !forecasterDate.length && !slaPredictionData.length && !insightLoading" class="empty-insights-message">
+    <LoadingComponent v-show="insightLoading || exporting" />
+
+    <div v-if="exporting" class="export-overlay">
+      <p>Gerando relatório, por favor aguarde...</p>
+    </div>
+
+    <div
+      v-show="!insightsData.length && !forecasterDate.length && !slaPredictionData.length && !insightLoading"
+      class="empty-insights-message"
+    >
       <p>Selecione um cliente e/ou produto no filtro para visualizar os insights.</p>
     </div>
 
-    <div v-if="insightsData.length && forecasterDate.length && slaPredictionData.length && !insightLoading ">
-      <p class="forecaster-card-title">Previsão de tickets estourarem o SLA</p>
-      <SlaPredictionCard
-        :predictionData="slaPredictionData"
-        :loading="slaPredictionLoading"
-      />
+    <div
+      v-if="insightsData.length && forecasterDate.length && slaPredictionData.length && !insightLoading"
+      class="report-content"
+      ref="reportContainer"
+    >
+      <div ref="slaSection">
+        <p class="forecaster-card-title">Previsão de tickets estourarem o SLA</p>
+        <SlaPredictionCard :predictionData="slaPredictionData" :loading="slaPredictionLoading" />
+      </div>
 
-      <p class="forecaster-card-title">Previsão de sazonalidade e volume de tickets por produto</p>
-      <div class="chart-card-full">
-        <div class="chart-content-wrapper">
-          <ForecasterCard :forecaster="forecasterDate"></ForecasterCard>
+      <div ref="forecasterSection">
+        <p class="forecaster-card-title">Previsão de sazonalidade e volume de tickets por produto</p>
+        <div class="chart-card-full">
+          <div class="chart-content-wrapper">
+            <ForecasterCard :forecaster="forecasterDate"></ForecasterCard>
+          </div>
         </div>
       </div>
 
-      <div class="insight-section-wrapper">
+      <div class="insight-section-wrapper" ref="insightSection">
         <InsightCard :insights="insightsData" />
       </div>
 
-      <h2 class="chart-title-main">Análise de Causas Raízes</h2>
-      <ParetoChart
-        v-if="selectedClients.length || selectedProducts.length"
-        :raw-pareto-data="rawParetoData"
-        :selected-clients="selectedClients" :loading="paretoLoading"
-      />
+      <div ref="paretoSection">
+        <h2 class="chart-title-main">Análise de Causas Raízes</h2>
+        <ParetoChart
+          v-if="selectedClients.length || selectedProducts.length"
+          :raw-pareto-data="rawParetoData"
+          :selected-clients="selectedClients"
+          :loading="paretoLoading"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref, type Ref, watch, computed } from 'vue'
+import html2canvas from 'html2canvas'
 
 import NavigationBar from '@/components/navigationBar/NavigationBar.vue'
 import MultiSelect from 'primevue/multiselect'
+import Button from 'primevue/button'
+import Menu from 'primevue/menu'
 import LoadingComponent from '@/components/LoadingComponent.vue'
 import InsightCard from '@/components/insightSection/InsightCard.vue'
 import ParetoChart from '@/components/ParetoChart.vue'
@@ -83,6 +114,9 @@ import { getRootCauseAnalysis } from '@/api/RootCauseAnalysisApi'
 import { fetchProductInsights } from '@/api/InsightCardApi'
 import { fetchFilterOptions } from '@/api/FiltersApi'
 import { fetchSlaPrediction } from '@/api/SlaPredictionApi'
+
+import { exportCsv, exportPdf } from '@/api/ExportApi'
+import type { PdfExportRequest } from '@/types/InsightType/ExportType'
 
 import type { RootCauseAnalysisData } from '@/types/RootCauseAnalysisResponse'
 import type { FilterCompany } from '@/types/Company'
@@ -99,6 +133,7 @@ const paretoLoading: Ref<boolean> = ref(false)
 const rawParetoData: Ref<RootCauseAnalysisData> = ref({})
 
 const insightLoading: Ref<boolean> = ref(false)
+const exporting = ref(false)
 const insightsData: Ref<ProductInsight[]> = ref([])
 const forecasterDate: Ref<Forecaster[]> = ref([])
 
@@ -108,12 +143,92 @@ const slaPredictionData: Ref<SlaPredictionItem[]> = ref([])
 const currentPage = ref(1)
 const itemsPerPage = ref(3)
 
+const menu = ref()
+const slaSection = ref<HTMLElement | null>(null)
+const forecasterSection = ref<HTMLElement | null>(null)
+const paretoSection = ref<HTMLElement | null>(null)
+const insightSection = ref<HTMLElement | null>(null)
+
+const exportOptions = ref([
+  {
+    label: 'Exportar CSV',
+    icon: 'pi pi-file-excel',
+    command: () => handleExportCsv(),
+  },
+  {
+    label: 'Exportar PDF',
+    icon: 'pi pi-file-pdf',
+    command: () => handleExportPdf(),
+  },
+])
+
+const toggleMenu = (event: any) => {
+  menu.value.toggle(event)
+}
+
+const handleExportCsv = async () => {
+  try {
+    const clientId =
+      selectedClients.value.length > 0 ? parseInt(selectedClients.value[0].code) : undefined
+
+    await exportCsv(clientId)
+  } catch (error) {
+    console.error('Falha no download do CSV', error)
+  }
+}
+
+const handleExportPdf = async () => {
+  exporting.value = true
+  try {
+    const graphsBase64: string[] = []
+
+    if (slaSection.value) {
+      const canvas = await html2canvas(slaSection.value, {
+        scale: 2,
+        useCORS: true,
+      })
+      graphsBase64.push(canvas.toDataURL('image/png'))
+    }
+
+    if (forecasterSection.value) {
+      const canvas = await html2canvas(forecasterSection.value, { scale: 2 })
+      graphsBase64.push(canvas.toDataURL('image/png'))
+    }
+
+    if (insightSection.value) {
+      const canvas = await html2canvas(insightSection.value, { scale: 2 })
+      graphsBase64.push(canvas.toDataURL('image/png'))
+    }
+
+    if (paretoSection.value) {
+      const canvas = await html2canvas(paretoSection.value, { scale: 2 })
+      graphsBase64.push(canvas.toDataURL('image/png'))
+    }
+
+    const selectedClient = selectedClients.value.length > 0 ? selectedClients.value[0] : null
+    const clientName = selectedClient ? selectedClient.name : 'Geral'
+    const clientId = selectedClient ? parseInt(selectedClient.code) : undefined
+
+    const requestBody: PdfExportRequest = {
+      reportTitle: `Relatório de Insights - ${clientName}`,
+      graphImagesBase64: graphsBase64,
+      clientId: clientId,
+    }
+
+    await exportPdf(requestBody)
+  } catch (error) {
+    console.error('Falha ao gerar PDF', error)
+  } finally {
+    exporting.value = false
+  }
+}
+
 const loadFilterOptions = async () => {
   try {
     const [clientFilterData, productFilterData] = await Promise.all([
       fetchFilterOptions(10),
-      fetchFilterOptions(10)
-    ]);
+      fetchFilterOptions(10),
+    ])
 
     const allCompanies = clientFilterData.allCompanies as unknown as SelectListOption[]
     clientOptions.value = allCompanies.map((company) => ({
@@ -121,14 +236,13 @@ const loadFilterOptions = async () => {
       code: company.id!.toString(),
     }))
 
-    selectedClients.value = [...clientOptions.value];
+    selectedClients.value = [...clientOptions.value]
 
     const allProducts = productFilterData.allProducts as unknown as SelectListOption[]
     productOptions.value = allProducts.map((product) => ({
       name: product.name,
       code: product.id!.toString(),
     }))
-
   } catch (error) {
     console.error('Error fetching filter options:', error)
   }
@@ -149,12 +263,12 @@ const fetchParetoData = async (clientCodes: string[]) => {
 }
 
 const fetchInsightsData = async () => {
-  let clientCodes = selectedClients.value.map(client => client.code);
-  const productCodes = selectedProducts.value.map(product => product.code);
+  let clientCodes = selectedClients.value.map((client) => client.code)
+  const productCodes = selectedProducts.value.map((product) => product.code)
 
   if (clientCodes.length === 0) {
     if (productCodes.length > 0) {
-      clientCodes = clientOptions.value.map(client => client.code);
+      clientCodes = clientOptions.value.map((client) => client.code)
     } else {
       insightsData.value = []
       forecasterDate.value = []
@@ -172,11 +286,10 @@ const fetchInsightsData = async () => {
 
   insightLoading.value = true
   try {
-    const rawInsights = await fetchProductInsights(clientCodes, productCodes);
+    const rawInsights = await fetchProductInsights(clientCodes, productCodes)
 
     insightsData.value = cleanInsightsData(rawInsights.productInsightsData)
     forecasterDate.value = rawInsights.seasonalityInsightData
-
   } catch (error) {
     console.error('Erro ao buscar insights:', error)
     insightsData.value = []
@@ -239,47 +352,54 @@ function cleanInsightsData(insights: ProductInsight[]): ProductInsight[] {
   }))
 }
 
-watch(selectedClients, (newClients) => {
-  const clientCodeForSLA = newClients.length > 0 ? newClients[0].code : null;
-  const clientCodesForPareto = newClients.map(client => client.code);
+watch(
+  selectedClients,
+  (newClients) => {
+    const clientCodeForSLA = newClients.length > 0 ? newClients[0].code : null
+    const clientCodesForPareto = newClients.map((client) => client.code)
 
-  if (newClients.length > 0) {
-    fetchParetoData(clientCodesForPareto)
-    fetchSlaPredictionData(clientCodeForSLA)
-  } else if (selectedProducts.value.length === 0) {
-    rawParetoData.value = {}
-    slaPredictionData.value = []
-    insightsData.value = []
-    forecasterDate.value = []
-  } else {
-    rawParetoData.value = {}
-    slaPredictionData.value = []
-  }
+    if (newClients.length > 0) {
+      fetchParetoData(clientCodesForPareto)
+      fetchSlaPredictionData(clientCodeForSLA)
+    } else if (selectedProducts.value.length === 0) {
+      rawParetoData.value = {}
+      slaPredictionData.value = []
+      insightsData.value = []
+      forecasterDate.value = []
+    } else {
+      rawParetoData.value = {}
+      slaPredictionData.value = []
+    }
 
-  fetchInsightsData()
-}, { deep: true });
+    fetchInsightsData()
+  },
+  { deep: true },
+)
 
-watch(selectedProducts, (newProducts) => {
-  if (newProducts.length > 0 && selectedClients.value.length === 0) {
-    const allClientCodes = clientOptions.value.map(client => client.code);
-    const clientCodeForSLA = allClientCodes.length > 0 ? allClientCodes[0] : null;
+watch(
+  selectedProducts,
+  (newProducts) => {
+    if (newProducts.length > 0 && selectedClients.value.length === 0) {
+      const allClientCodes = clientOptions.value.map((client) => client.code)
+      const clientCodeForSLA = allClientCodes.length > 0 ? allClientCodes[0] : null
 
-    fetchParetoData(allClientCodes);
-    fetchSlaPredictionData(clientCodeForSLA);
-  } else if (newProducts.length === 0 && selectedClients.value.length === 0) {
-    rawParetoData.value = {}
-    slaPredictionData.value = []
-  }
+      fetchParetoData(allClientCodes)
+      fetchSlaPredictionData(clientCodeForSLA)
+    } else if (newProducts.length === 0 && selectedClients.value.length === 0) {
+      rawParetoData.value = {}
+      slaPredictionData.value = []
+    }
 
-  fetchInsightsData()
-}, { deep: true });
-
+    fetchInsightsData()
+  },
+  { deep: true },
+)
 
 onMounted(async () => {
   await loadFilterOptions()
 
-  const clientCodesForPareto = selectedClients.value.map(client => client.code);
-  const clientCodeForSLA = selectedClients.value.length > 0 ? selectedClients.value[0].code : null;
+  const clientCodesForPareto = selectedClients.value.map((client) => client.code)
+  const clientCodeForSLA = selectedClients.value.length > 0 ? selectedClients.value[0].code : null
 
   if (selectedClients.value.length > 0 || selectedProducts.value.length > 0) {
     await fetchParetoData(clientCodesForPareto)
@@ -291,6 +411,30 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.filter-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.export-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+  color: #555;
+  gap: 1rem;
+}
+
 .insight-container {
   font-family: Arial, sans-serif;
   padding: 2rem;
@@ -379,5 +523,9 @@ onMounted(async () => {
 
 .insight-section-wrapper {
   margin-top: 2.5rem;
+}
+
+.action-buttons {
+  align-self: flex-end;
 }
 </style>
