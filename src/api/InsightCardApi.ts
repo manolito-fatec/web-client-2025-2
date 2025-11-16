@@ -1,26 +1,35 @@
-import type { InsightApiResponse, ProductInsight } from '@/types/InsightType/Insight';
+import type { InsightApiResponse } from '@/types/InsightType/Insight';
 import api from '@/api/axios/AxiosConfig.ts'
 
 
 /**
- * Busca os insights de produto para um determinado cliente.
- * @param customerId - O ID do cliente para o qual buscar os insights.
- * @returns Uma promessa que resolve para um array de ProductInsight.
+ * Busca os insights de produto para clientes e produtos específicos.
+ *
+ * @param customerIds - Um array de strings contendo os IDs dos clientes
+ * @param productIds - Um array de strings contendo os IDs dos produtos
+ * @returns Uma promessa que resolve para a InsightApiResponse.
  */
-export async function fetchProductInsights(customerId: number): Promise<InsightApiResponse> {
+export async function fetchProductInsights(
+  customerIds: string[],
+  productIds: string[]
+): Promise<InsightApiResponse> {
   const url = `api/insights/data`;
+
+  const customerIdParam = customerIds.join(',');
+  const productIdParam = productIds.join(',');
 
   try {
     const response = await api.get<InsightApiResponse>(url, {
       params: {
-        customerId
+        customerIds: customerIdParam,
+        productIds: productIdParam
       }
     });
 
-    return response.data || [];
+    return response.data;
 
   } catch (error) {
-    console.error(`Erro ao buscar insights para o cliente ID ${customerId}:`, error);
+    console.error(`Erro ao buscar insights (Clientes: ${customerIdParam}, Produtos: ${productIdParam}):`, error);
     throw error;
   }
 }
