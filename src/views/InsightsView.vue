@@ -140,14 +140,13 @@ const forecasterDate: Ref<Forecaster[]> = ref([])
 const slaPredictionLoading: Ref<boolean> = ref(false)
 const slaPredictionData: Ref<SlaPredictionItem[]> = ref([])
 
-const currentPage = ref(1)
-const itemsPerPage = ref(3)
-
 const menu = ref()
 const slaSection = ref<HTMLElement | null>(null)
 const forecasterSection = ref<HTMLElement | null>(null)
 const paretoSection = ref<HTMLElement | null>(null)
 const insightSection = ref<HTMLElement | null>(null)
+
+const isInitialLoad: Ref<boolean> = ref(true)
 
 const exportOptions = ref([
   {
@@ -324,22 +323,6 @@ const fetchSlaPredictionData = async (clientCode: string | null) => {
   }
 }
 
-const totalPages = computed(() => {
-  return Math.ceil(insightsData.value.length / itemsPerPage.value)
-})
-
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++
-  }
-}
-
-const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--
-  }
-}
-
 function cleanActionText(text: string): string {
   if (!text) return ''
 
@@ -359,45 +342,34 @@ function cleanInsightsData(insights: ProductInsight[]): ProductInsight[] {
   }))
 }
 
-watch(
-  selectedClients,
-  (newClients) => {
-    const clientCodeForSLA = newClients.length > 0 ? newClients[0].code : null
-    const clientCodesForPareto = newClients.map((client) => client.code)
+const fetchData = () => {
+  let clientCodes = selectedClients.value.map((client) => client.code)
+  let clientCodeForSLA = clientCodes.length > 0 ? clientCodes[0] : null
+  const productCodes = selectedProducts.value.map((product) => product.code)
 
-    if (newClients.length > 0) {
-      fetchParetoData(clientCodesForPareto)
-      fetchSlaPredictionData(clientCodeForSLA)
-    } else if (selectedProducts.value.length === 0) {
-      rawParetoData.value = {}
-      slaPredictionData.value = []
-      insightsData.value = []
-      forecasterDate.value = []
-    } else {
-      rawParetoData.value = {}
-      slaPredictionData.value = []
-    }
+  if (clientCodes.length === 0 && productCodes.length > 0) {
+    clientCodes = clientOptions.value.map((client) => client.code)
+    clientCodeForSLA = clientCodes.length > 0 ? clientCodes[0] : null
+  }
 
-    fetchInsightsData()
-  },
-  { deep: true },
-)
+  if (clientCodes.length > 0) {
+    fetchParetoData(clientCodes)
+    fetchSlaPredictionData(clientCodeForSLA)
+  } else {
+    rawParetoData.value = {}
+    slaPredictionData.value = []
+  }
+
+  fetchInsightsData()
+}
 
 watch(
-  selectedProducts,
-  (newProducts) => {
-    if (newProducts.length > 0 && selectedClients.value.length === 0) {
-      const allClientCodes = clientOptions.value.map((client) => client.code)
-      const clientCodeForSLA = allClientCodes.length > 0 ? allClientCodes[0] : null
-
-      fetchParetoData(allClientCodes)
-      fetchSlaPredictionData(clientCodeForSLA)
-    } else if (newProducts.length === 0 && selectedClients.value.length === 0) {
-      rawParetoData.value = {}
-      slaPredictionData.value = []
+  [selectedClients, selectedProducts],
+  () => {
+    if (isInitialLoad.value) {
+      return
     }
-
-    fetchInsightsData()
+    fetchData()
   },
   { deep: true },
 )
@@ -405,15 +377,9 @@ watch(
 onMounted(async () => {
   await loadFilterOptions()
 
-  const clientCodesForPareto = selectedClients.value.map((client) => client.code)
-  const clientCodeForSLA = selectedClients.value.length > 0 ? selectedClients.value[0].code : null
+  fetchData()
 
-  if (selectedClients.value.length > 0 || selectedProducts.value.length > 0) {
-    await fetchParetoData(clientCodesForPareto)
-    await fetchSlaPredictionData(clientCodeForSLA)
-  }
-
-  await fetchInsightsData()
+  isInitialLoad.value = false
 })
 </script>
 
