@@ -76,6 +76,7 @@ import { getSessionItem } from '@/api/session/SessionManagement.ts'
 import { signApi } from '@/api/SignApi.ts'
 import { useToast } from 'primevue/usetoast'
 import { getActualTerm } from '@/api/ContractApi.ts'
+import type { CheckInRegisterAndUpdate } from '@/types/ContractTypes/CheckList.ts'
 
 const toast = useToast()
 const showError = (errorSum: string, errorMsg: string) => {
@@ -108,39 +109,42 @@ const isFormValid = computed(() => {
 
 const submitTerms = () => {
   if (isFormValid.value) {
-    const acceptedCheckIds = Object.keys(checkStates.value)
-      .filter((key) => checkStates.value[Number(key)] === true)
-      .map((key) => Number(key))
+    const formattedCheckList: CheckInRegisterAndUpdate[] = actualTerm.value.checkList.map(
+      (item: any) => {
+        return {
+          checkId: item.checkId,
+          label: item.label,
+          check: checkStates.value[item.checkId]
+        }
+      }
+    )
 
-    console.log('Termo ID:', actualTerm.value.termsId)
-    console.log('IDs aceitos:', acceptedCheckIds)
-
-    console.log(newUser.value);
-
-    const newUserWithTerms: Ref<NewUser> = ref<NewUser>({
+    const newUserWithTerms: NewUser = {
       name: newUser.value.name,
       email: newUser.value.email,
       phone: newUser.value.phone,
       password: newUser.value.password,
-      termsId: actualTerm.value,
-      checkList: actualTerm.value.checkList
-    })
-    signApi(newUserWithTerms.value).then((response) => {
+      termsId: actualTerm.value.termsId,
+      termAccepted: true,
+      checkList: formattedCheckList
+    }
+
+    signApi(newUserWithTerms).then((response) => {
       switch (response.status) {
         case 200:
           toast.add({
             severity: 'success',
             summary: 'Cadastro criado!',
-            life: 3000,
+            life: 3000
           })
           break
         case 0:
         default:
           showError(
             'Erro no servidor',
-            'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.',
+            'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.'
           )
-          break;
+          break
       }
     })
   } else {

@@ -3,3 +3,9 @@ export interface CheckList{
   "label": string,
   "required": boolean
 }
+
+export interface CheckInRegisterAndUpdate{
+  "checkId": number,
+  "label": string,
+  "check": boolean
+}
