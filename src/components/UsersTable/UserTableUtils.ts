@@ -7,7 +7,8 @@ export function transformUsers(appUser: AppUser):AppUserTable {
   const readyForTableUser: Ref<AppUserTable> = ref<AppUserTable>({
     id: appUser.id,
     email: appUser.email,
-    role: appUser.role.rlName})
+    role: appUser.role.rlName,
+    state: appUser.verified ? "Ativo": "Pendente"})
   return readyForTableUser.value
 }
 

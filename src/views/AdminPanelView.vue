@@ -1,7 +1,7 @@
 <template>
   <div class="admin-container">
     <NavigationBar />
-    <UsersTable :appUsers="appUsers"/>
+    <UsersTable/>
   </div>
 </template>
 
@@ -14,10 +14,6 @@ import { getUserTableData } from '@/components/UsersTable/UserTableUtils.ts'
 
 const appUsers: Ref<AppUserTable[]> = ref<AppUserTable[]>([])
 
-
-onMounted(() => {
-  appUsers.value = getUserTableData()
-})
 </script>
 
 <style scoped>

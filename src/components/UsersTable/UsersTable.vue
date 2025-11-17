@@ -21,6 +21,7 @@
       tableStyle="min-width: 50rem"
     >
       <Column field="email" header="E-mail"></Column>
+      <Column field="state" header="Status"/>
       <Column field="role" header="Papel">
         <template #body="slotProps">
           <Select
@@ -62,9 +63,6 @@ import { onMounted, ref, computed, type Ref } from 'vue'
 import { getUserTableData } from '@/components/UsersTable/UserTableUtils.ts'
 
 const toast = useToast()
-const props = defineProps<{
-  appUsers: AppUserTable[]
-}>()
 
 const appUsersInTable: Ref<AppUserTable[]> = ref<AppUserTable[]>([])
 const searchEmail = ref('')
@@ -75,7 +73,7 @@ const filteredUsers = computed(() => {
   let users = appUsersInTable.value
 
   if (searchEmail.value) {
-    users = users.filter(user =>
+      users = users.filter(user =>
       user.email.toLowerCase().includes(searchEmail.value.toLowerCase())
     )
   }
