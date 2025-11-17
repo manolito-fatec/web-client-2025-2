@@ -1,45 +1,40 @@
 <template>
   <div class="signup-form">
-    <p class="info-text">
-      Digite seu e-mail corporativo para receber o link de
-      confirmação.
-    </p>
+    <p class="info-text">Digite seu e-mail corporativo para receber o link de confirmação.</p>
 
     <div class="field">
       <label>
         E-mail
-        <input placeholder="seunome@pardal.com" v-model="email"/>
+        <input placeholder="seunome@pardal.com" v-model="email" />
       </label>
-      <span class="error-text" v-if="!isPardalEmailValid">{{emailErrorMsg}}</span>
+      <span class="error-text" v-if="!isPardalEmailValid">{{ emailErrorMsg }}</span>
     </div>
 
     <div class="field">
       <label>
         Nome completo
-        <input placeholder="Seu nome completo" v-model="name"/>
+        <input placeholder="Seu nome completo" v-model="name" />
       </label>
-      <span class="error-text" v-if="!isNameValid">{{nameErrorMsg}}</span>
+      <span class="error-text" v-if="!isNameValid">{{ nameErrorMsg }}</span>
     </div>
 
     <div class="field">
       <label>
         Telefone
-        <input placeholder="(00)00000-0000" v-model="phone" @input="handlePhoneInput"/>
+        <input placeholder="(00)00000-0000" v-model="phone" @input="handlePhoneInput" />
       </label>
-      <span class="error-text" v-if="!isPhoneValid">{{phoneErrorMsg}}</span>
+      <span class="error-text" v-if="!isPhoneValid">{{ phoneErrorMsg }}</span>
     </div>
 
     <div class="field">
       <label>
         Senha
-        <input placeholder="*************" type="password" v-model="password"/>
+        <input placeholder="*************" type="password" v-model="password" />
       </label>
-      <span class="error-text" v-if="!isPasswordValid">{{passwordErrorMsg}}</span>
+      <span class="error-text" v-if="!isPasswordValid">{{ passwordErrorMsg }}</span>
     </div>
 
-    <button class="btn primary" :disabled="!isFormValid" @click="handleSignIn">
-      Enviar Link
-    </button>
+    <button class="btn primary" :disabled="!isFormValid" @click="handleSignIn">Enviar Link</button>
     <button class="btn secondary" @click="emit('toggleSign')">Cancelar</button>
     <LoadingComponent v-if="loading"></LoadingComponent>
     <p class="hint">Um e-mail será enviado com link válido por 24h.</p>
@@ -60,6 +55,8 @@ import { ref, computed, type Ref } from 'vue'
 import type { NewUser } from '@/types/NewUser.ts'
 import { signApi } from '@/api/SignApi.ts'
 import LoadingComponent from '../LoadingComponent.vue'
+import router from '@/router'
+import { setSessionItem } from '@/api/session/SessionManagement.ts'
 
 const emit = defineEmits(['toggleSign'])
 const created = ref<boolean>(false)
@@ -135,7 +132,9 @@ const isPasswordValid = computed(() => {
 })
 
 const isFormValid = computed(() => {
-  return isPardalEmailValid.value && isNameValid.value && isPhoneValid.value && isPasswordValid.value
+  return (
+    isPardalEmailValid.value && isNameValid.value && isPhoneValid.value && isPasswordValid.value
+  )
 })
 
 function handlePhoneInput() {
@@ -156,16 +155,15 @@ function handlePhoneInput() {
 
 function handleSignIn() {
   if (isFormValid.value) {
-    loading.value = true;
-    const newUser:Ref<NewUser> = ref<NewUser>({ email: email.value,
+    loading.value = true
+    const newUser: Ref<NewUser> = ref<NewUser>({
+      email: email.value,
       password: password.value,
       phone: phone.value,
-      name: name.value
+      name: name.value,
     })
-    signApi(newUser.value).then(() => {
-      loading.value = false
-      created.value = true
-    })
+    setSessionItem('newUser', JSON.stringify(newUser.value))
+    router.push('/contract')
   } else {
     console.log('Formulário inválido. Corrija os erros.')
   }
@@ -220,7 +218,8 @@ function handleSignIn() {
   margin-bottom: 0.5rem;
 }
 
-.email-sent p, .email-sent ul {
+.email-sent p,
+.email-sent ul {
   font-size: 14px;
   font-family: Arial, sans-serif;
   color: #374151;
