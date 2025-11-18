@@ -34,7 +34,7 @@
       <span class="error-text" v-if="!isPasswordValid">{{ passwordErrorMsg }}</span>
     </div>
 
-    <button class="btn primary" :disabled="!isFormValid" @click="handleSignIn">Enviar Link</button>
+    <button class="btn primary" :disabled="!isFormValid" @click="handleSignIn">Ler os Termos de Uso</button>
     <button class="btn secondary" @click="emit('toggleSign')">Cancelar</button>
     <LoadingComponent v-if="loading"></LoadingComponent>
     <p class="hint">Um e-mail será enviado com link válido por 24h.</p>

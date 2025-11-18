@@ -1,7 +1,7 @@
 import api from '@/api/axios/AxiosConfig.ts'
 import type { Term } from '@/types/ContractTypes/Term.ts'
 
-const BASE_URL = 'http://localhost:8080/api/term';
+const BASE_URL = 'http://localhost:8080/api/term/current';
 
 export const getActualTerm = async (): Promise<Term> => {
   try{

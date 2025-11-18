@@ -3,8 +3,7 @@
     <div class="modal-content">
       <header class="modal-header">
         <h2>{{ actualTerm?.title || 'Termos de Uso e Privacidade' }}</h2>
-        <button class="close-button" @click="$emit('close')">
-        </button>
+        <button class="close-button" @click="closeAndGoHome">X</button>
       </header>
 
       <div class="terms-scroll-area">
@@ -14,7 +13,7 @@
           </div>
 
           <div class="lgpd-text">
-            <p>{{actualTerm?.content}}</p>
+            <p>{{ actualTerm?.content }}</p>
           </div>
         </section>
 
@@ -27,10 +26,7 @@
             >
               <div class="term-item" :class="item.required ? 'required' : 'optional'">
                 <label class="term-label">
-                  <input
-                    type="checkbox"
-                    v-model="checkStates[item.checkId]"
-                  />
+                  <input type="checkbox" v-model="checkStates[item.checkId]" />
                   <div class="text-group">
                     <span class="term-main-line">
                       <span class="term-title">
@@ -44,10 +40,7 @@
                 </label>
               </div>
 
-              <div
-                v-if="index < actualTerm.checkList.length - 1"
-                class="separator"
-              ></div>
+              <div v-if="index < actualTerm.checkList.length - 1" class="separator"></div>
             </div>
           </template>
 
@@ -59,9 +52,9 @@
 
       <footer class="modal-footer">
         <span class="optional-count"
-        >Opcionais aceitos: {{ acceptedOptionalCount }}/{{ totalOptionalCount }}</span
+          >Opcionais aceitos: {{ acceptedOptionalCount }}/{{ totalOptionalCount }}</span
         >
-        <button class="register-link-button" :disabled="!isFormValid" @click="submitTerms">
+        <button v-if="getSessionItem('newUser')" class="register-link-button" :disabled="!isFormValid" @click="submitTerms">
           Enviar link de cadastro
         </button>
       </footer>
@@ -72,11 +65,12 @@
 <script setup lang="ts">
 import { ref, computed, type Ref, onMounted } from 'vue'
 import type { NewUser } from '@/types/NewUser.ts'
-import { getSessionItem } from '@/api/session/SessionManagement.ts'
+import { getSessionItem, setSessionItem } from '@/api/session/SessionManagement.ts'
 import { signApi } from '@/api/SignApi.ts'
 import { useToast } from 'primevue/usetoast'
 import { getActualTerm } from '@/api/ContractApi.ts'
 import type { CheckInRegisterAndUpdate } from '@/types/ContractTypes/CheckList.ts'
+import router from '@/router'
 
 const toast = useToast()
 const showError = (errorSum: string, errorMsg: string) => {
@@ -114,9 +108,9 @@ const submitTerms = () => {
         return {
           checkId: item.checkId,
           label: item.label,
-          check: checkStates.value[item.checkId]
+          check: checkStates.value[item.checkId],
         }
-      }
+      },
     )
 
     const newUserWithTerms: NewUser = {
@@ -126,30 +120,28 @@ const submitTerms = () => {
       password: newUser.value.password,
       termsId: actualTerm.value.termsId,
       termAccepted: true,
-      checkList: formattedCheckList
+      checkList: formattedCheckList,
     }
 
-    signApi(newUserWithTerms).then((response) => {
-      switch (response.status) {
-        case 200:
-          toast.add({
-            severity: 'success',
-            summary: 'Cadastro criado!',
-            life: 3000
-          })
-          break
-        case 0:
-        default:
-          showError(
-            'Erro no servidor',
-            'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.'
-          )
-          break
-      }
+    signApi(newUserWithTerms).then(() => {
+      toast.add({
+        severity: 'success',
+        summary: 'Cadastro criado!',
+        detail:
+          'Seu cadastro será avaliado por um administrador. Um email será enviado quando o mesmo for validado.',
+        life: 12000,
+      })
+      sessionStorage.removeItem('newUser')
+      closeAndGoHome()
     })
+    closeAndGoHome()
   } else {
     console.log('Termos obrigatórios não aceitos.')
   }
+}
+
+const closeAndGoHome = () => {
+  router.push('/')
 }
 
 onMounted(() => {
@@ -174,7 +166,7 @@ onMounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: #f0f0f0;
+  background-color: #f4f7fe;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -213,11 +205,11 @@ onMounted(() => {
 .close-button {
   position: absolute;
   top: 24px;
-  right: 24px;
+  right: 36px;
   background: none;
   border: none;
   cursor: pointer;
-  color: #8a8a8a;
+  color: #000000;
   padding: 0;
 }
 

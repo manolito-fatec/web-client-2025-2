@@ -9,7 +9,7 @@
     <div class="field">
       <label>
         Senha
-        <input type="password" placeholder="********" v-model="password" :disabled="isLoading" />
+        <input type="password" placeholder="********" v-model="password" @keydown.enter="handleLogin" :disabled="isLoading" />
       </label>
     </div>
     <button class="btn primary" @click="handleLogin" :disabled="isLoading">
