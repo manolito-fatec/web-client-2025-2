@@ -84,7 +84,7 @@ function updateUsers () {
   appUsersInTable.value = getUserTableData()
 }
 
-const deleteUser = (user: AppUserTable) =>
+const deleteUser = (user: AppUserTable) =>{
   api
     .delete('user?id=' + user.id)
     .then((response) => {
