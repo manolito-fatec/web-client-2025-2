@@ -2,21 +2,38 @@
   <div class="dashboard-container">
     <NavigationBar></NavigationBar>
 
-    <ChartDataFilter @applyFilters="applyFilters"></ChartDataFilter>
-    <LoadingComponent v-if="loadingValue"></LoadingComponent>
+    <ChartDataFilter @applyFilters="applyFilters">
+      <template #actions-start>
+        <div class="action-buttons-wrapper">
+          <ExportButton
+            :metricsSection="metricsSection"
+            :productChartSection="productChartSection"
+            :timeChartSection="timeChartSection"
+            :setExporting="setExporting"
+          />
+        </div>
+      </template>
+    </ChartDataFilter>
+
+    <LoadingComponent v-if="loadingValue || exporting"></LoadingComponent>
+
+    <div v-if="exporting && !loadingValue" class="export-overlay">
+      <p>Gerando relatório, por favor aguarde...</p>
+    </div>
+
     <div v-if="!loadingValue">
-      <div class="metrics-grid">
+      <div class="metrics-grid" ref="metricsSection">
         <Cards title="Total de Chamados" :value="totalOfTicketsValue"></Cards>
         <Cards title="Tempo Médio de Resolução" :value="averageTimeValue"></Cards>
         <Cards title="% Reincidência" :value="reOpenedValue"></Cards>
         <Cards title="SLA Cumprido" :value="slaCompliancePercentualValue"></Cards>
       </div>
       <div class="charts-grid">
-        <div class="chart-card">
+        <div class="chart-card" ref="productChartSection">
           <h2>Chamados por Produto</h2>
           <BarChart :data="productChartData" :options="chartOptions" />
         </div>
-        <div class="chart-card">
+        <div class="chart-card" ref="timeChartSection">
           <h2>Chamados ao Longo do Tempo</h2>
           <LineChart :data="timeChartData" :options="chartOptions" />
         </div>
@@ -51,6 +68,8 @@ import {
   transformTicketsByProductData,
 } from '@/components/ChartService.ts'
 import NavigationBar from '@/components/navigationBar/NavigationBar.vue'
+
+import ExportButton from '@/components/ExportButton.vue'
 
 ChartJS.register(
   CategoryScale,
@@ -106,6 +125,15 @@ const totalOfTicketsValue: Ref<string> = ref<string>('0')
 const slaCompliancePercentualValue: Ref<string> = ref<string>('0%')
 const loadingValue: Ref<boolean> = ref<boolean>(false)
 const reOpenedValue: Ref<string> = ref<string>('0%')
+const exporting = ref(false)
+
+const setExporting = (value: boolean) => {
+  exporting.value = value
+}
+
+const metricsSection = ref<HTMLElement | null>(null)
+const productChartSection = ref<HTMLElement | null>(null)
+const timeChartSection = ref<HTMLElement | null>(null)
 
 const productChartData: Ref<ChartData<'bar', number[], string>> = ref({
   labels: [],
@@ -130,8 +158,6 @@ const timeChartData: Ref<ChartData<'line', number[], string>> = ref({
     },
   ],
 })
-
-
 
 onMounted(async () => {
   const filters: FilterOptions = {
@@ -158,44 +184,30 @@ html {
   color: #333;
 }
 
-.header {
-  background-color: #fff;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 1rem;
+.export-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+  color: #555;
+  gap: 1rem;
 }
 
-.header-content {
+.action-buttons-wrapper {
   display: flex;
-  margin: 0;
-  justify-content: space-between;
-  align-items: center;
+  padding-bottom: 14px;
 }
 
 .header-content h1 {
   margin: 0;
-}
-
-.navigation {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.nav-item {
-  background: none;
-  border: none;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  font-weight: bold;
-  color: #999;
-}
-
-.nav-item.active {
-  color: #000;
-  border-bottom: 2px solid #3b82f6;
 }
 
 .metrics-grid {
@@ -222,25 +234,6 @@ html {
 .chart-card h2 {
   margin: 0;
 }
-
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 300px;
-  gap: 0.5rem;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #e0e0e0;
-  border-top: 4px solid #3b82f6;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
 
 @keyframes spin {
   to {

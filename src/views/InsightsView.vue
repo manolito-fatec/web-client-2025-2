@@ -31,17 +31,14 @@
         </div>
 
         <div class="action-buttons">
-          <Button
-            type="button"
-            label="Mais ações"
-            icon="pi pi-chevron-down"
-            iconPos="right"
-            @click="toggleMenu"
-            aria-haspopup="true"
-            aria-controls="overlay_menu"
-            class="p-button-outlined"
+          <ExportButton
+            :metricsSection="slaSection"
+            :productChartSection="forecasterSection"
+            :timeChartSection="paretoSection"
+            :otherSection="insightSection"
+            :setExporting="setExporting"
+            :getExportFilterOptions="getExportFilterOptions"
           />
-          <Menu id="overlay_menu" ref="menu" :model="exportOptions" :popup="true" />
         </div>
       </div>
     </div>
@@ -97,12 +94,9 @@
 
 <script setup lang="ts">
 import { onMounted, ref, type Ref, watch, computed } from 'vue'
-import html2canvas from 'html2canvas'
 
 import NavigationBar from '@/components/navigationBar/NavigationBar.vue'
 import MultiSelect from 'primevue/multiselect'
-import Button from 'primevue/button'
-import Menu from 'primevue/menu'
 import LoadingComponent from '@/components/LoadingComponent.vue'
 import InsightCard from '@/components/insightSection/InsightCard.vue'
 import ParetoChart from '@/components/ParetoChart.vue'
@@ -115,8 +109,7 @@ import { fetchProductInsights } from '@/api/InsightCardApi'
 import { fetchFilterOptions } from '@/api/FiltersApi'
 import { fetchSlaPrediction } from '@/api/SlaPredictionApi'
 
-import { exportCsv, exportPdf } from '@/api/ExportApi'
-import type { PdfExportRequest } from '@/types/InsightType/ExportType'
+import ExportButton from '@/components/ExportButton.vue'
 
 import type { RootCauseAnalysisData } from '@/types/RootCauseAnalysisResponse'
 import type { FilterCompany } from '@/types/Company'
@@ -140,7 +133,6 @@ const forecasterDate: Ref<Forecaster[]> = ref([])
 const slaPredictionLoading: Ref<boolean> = ref(false)
 const slaPredictionData: Ref<SlaPredictionItem[]> = ref([])
 
-const menu = ref()
 const slaSection = ref<HTMLElement | null>(null)
 const forecasterSection = ref<HTMLElement | null>(null)
 const paretoSection = ref<HTMLElement | null>(null)
@@ -148,18 +140,20 @@ const insightSection = ref<HTMLElement | null>(null)
 
 const isInitialLoad: Ref<boolean> = ref(true)
 
-const exportOptions = ref([
-  {
-    label: 'Exportar CSV',
-    icon: 'pi pi-file-excel',
-    command: () => handleExportCsv(),
-  },
-  {
-    label: 'Exportar PDF',
-    icon: 'pi pi-file-pdf',
-    command: () => handleExportPdf(),
-  },
-])
+const getExportFilterOptions = () => {
+  const selectedClient = selectedClients.value.length > 0 ? selectedClients.value[0] : null
+  const clientName = selectedClient ? selectedClient.name : 'Geral'
+  const clientId = selectedClient ? parseInt(selectedClient.code) : undefined
+
+  return {
+    reportTitle: `Relatório de Insights - ${clientName}`,
+    clientId: clientId,
+  }
+}
+
+const setExporting = (value: boolean) => {
+  exporting.value = value
+}
 
 const clientsForPareto = computed(() => {
   if (selectedProducts.value.length > 0 && selectedClients.value.length === 0) {
@@ -167,67 +161,6 @@ const clientsForPareto = computed(() => {
   }
   return selectedClients.value
 })
-
-const toggleMenu = (event: any) => {
-  menu.value.toggle(event)
-}
-
-const handleExportCsv = async () => {
-  try {
-    const clientId =
-      selectedClients.value.length > 0 ? parseInt(selectedClients.value[0].code) : undefined
-
-    await exportCsv(clientId)
-  } catch (error) {
-    console.error('Falha no download do CSV', error)
-  }
-}
-
-const handleExportPdf = async () => {
-  exporting.value = true
-  try {
-    const graphsBase64: string[] = []
-
-    if (slaSection.value) {
-      const canvas = await html2canvas(slaSection.value, {
-        scale: 2,
-        useCORS: true,
-      })
-      graphsBase64.push(canvas.toDataURL('image/png'))
-    }
-
-    if (forecasterSection.value) {
-      const canvas = await html2canvas(forecasterSection.value, { scale: 2 })
-      graphsBase64.push(canvas.toDataURL('image/png'))
-    }
-
-    if (insightSection.value) {
-      const canvas = await html2canvas(insightSection.value, { scale: 2 })
-      graphsBase64.push(canvas.toDataURL('image/png'))
-    }
-
-    if (paretoSection.value) {
-      const canvas = await html2canvas(paretoSection.value, { scale: 2 })
-      graphsBase64.push(canvas.toDataURL('image/png'))
-    }
-
-    const selectedClient = selectedClients.value.length > 0 ? selectedClients.value[0] : null
-    const clientName = selectedClient ? selectedClient.name : 'Geral'
-    const clientId = selectedClient ? parseInt(selectedClient.code) : undefined
-
-    const requestBody: PdfExportRequest = {
-      reportTitle: `Relatório de Insights - ${clientName}`,
-      graphImagesBase64: graphsBase64,
-      clientId: clientId,
-    }
-
-    await exportPdf(requestBody)
-  } catch (error) {
-    console.error('Falha ao gerar PDF', error)
-  } finally {
-    exporting.value = false
-  }
-}
 
 const loadFilterOptions = async () => {
   try {
