@@ -5,6 +5,7 @@ export interface UserProfile {
     phone?: string;
     role?: any;
     company?: string;
+    password?: string;
 }
 
 export interface AuditDto {
