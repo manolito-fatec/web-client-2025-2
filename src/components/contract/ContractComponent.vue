@@ -58,7 +58,7 @@
           <button v-if="getSessionItem('newUser')" class="register-link-button" :disabled="!isFormValid" @click="submitTerms">
             Enviar link de cadastro
           </button>
-          <button v-if="currentUrl.includes('config-screen')" class="register-link-button" :disabled="!isFormValid" @click="updateTerms">
+          <button v-if="currentUrl.includes('config-screen') || currentUrl.includes('')" class="register-link-button" :disabled="!isFormValid" @click="updateTerms">
             Atualizar termo
           </button>
         </footer>
