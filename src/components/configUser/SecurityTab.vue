@@ -22,37 +22,40 @@
               <Button label="Redefinir Senha" icon="pi pi-key" @click="openDialog" class="btn-reset-password" />
             </div>
             <p class="password-hint">
-              Política: comprimento mínimo, histórico, bloqueio progressivo.
+              Política: Mínimo 8 chars, letras, números e especial (@$!%*#?&).
             </p>
           </div>
         </div>
-
-        <div class="password-rules">
-          <h4 class="rules-title">Regras de senha</h4>
-          <ul class="rules-list">
-            <li>Mínimo 6 caracteres;</li>
-            <li>As senhas devem coincidir.</li>
-          </ul>
-        </div>
       </div>
 
-      <Dialog v-model:visible="dialogVisible" header="Alterar Senha" modal :style="{ width: '400px' }">
+      <Dialog v-model:visible="dialogVisible" header="Alterar Senha" modal :style="{ width: '450px' }">
         <div class="flex flex-column gap-3" style="display: flex; flex-direction: column; gap: 1rem;">
+
           <div class="field">
             <label for="newPass" style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Nova Senha</label>
-            <InputText id="newPass" v-model="newPassword" type="password" style="width: 100%;" toggleMask />
+            <InputText id="newPass" v-model="newPassword" type="password" style="width: 100%;" toggleMask
+              :class="{ 'p-invalid': passwordError }" />
+            <small v-if="passwordError" class="p-error" style="display: block; margin-top: 0.2rem;">
+              {{ passwordError }}
+            </small>
           </div>
+
           <div class="field">
             <label for="confPass" style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Confirmar
               Senha</label>
-            <InputText id="confPass" v-model="confirmPassword" type="password" style="width: 100%;" toggleMask />
-            <small v-if="errorMsg" style="color: red; display: block; margin-top: 0.5rem;">{{ errorMsg }}</small>
+            <InputText id="confPass" v-model="confirmPassword" type="password" style="width: 100%;" toggleMask
+              :class="{ 'p-invalid': confirmError }" />
+            <small v-if="confirmError" class="p-error" style="display: block; margin-top: 0.2rem;">
+              {{ confirmError }}
+            </small>
           </div>
+
         </div>
+
         <template #footer>
           <Button label="Cancelar" icon="pi pi-times" text class="btn-dialog-cancel" @click="dialogVisible = false" />
           <Button label="Salvar" icon="pi pi-check" class="btn-dialog-save" @click="handleUpdatePassword"
-            :loading="loading" />
+            :loading="loading" :disabled="!isFormValid" />
         </template>
       </Dialog>
 
@@ -62,7 +65,7 @@
 
 <script setup lang="ts">
 import './SecurityTab.css'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
@@ -79,40 +82,49 @@ const toast = useToast()
 const dialogVisible = ref(false)
 const newPassword = ref('')
 const confirmPassword = ref('')
-const errorMsg = ref('')
 const loading = ref(false)
+
+const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/
+
+const passwordError = computed(() => {
+  if (newPassword.value.length === 0) return ''
+  if (!passwordRegex.test(newPassword.value)) {
+    return 'A senha deve ter 8+ caracteres, letras, números e símbolo (@$!%*#?&)'
+  }
+  return ''
+})
+
+const confirmError = computed(() => {
+  if (confirmPassword.value.length === 0) return ''
+  if (newPassword.value !== confirmPassword.value) {
+    return 'As senhas não coincidem'
+  }
+  return ''
+})
+
+const isFormValid = computed(() => {
+  return newPassword.value.length > 0 &&
+    confirmPassword.value.length > 0 &&
+    passwordError.value === '' &&
+    confirmError.value === ''
+})
 
 function openDialog() {
   newPassword.value = ''
   confirmPassword.value = ''
-  errorMsg.value = ''
   dialogVisible.value = true
 }
 
 async function handleUpdatePassword() {
-  if (!newPassword.value || !confirmPassword.value) {
-    errorMsg.value = 'Preencha os dois campos.'
-    return
-  }
-  if (newPassword.value !== confirmPassword.value) {
-    errorMsg.value = 'As senhas não coincidem.'
-    return
-  }
-  if (newPassword.value.length < 6) {
-    errorMsg.value = 'A senha deve ter no mínimo 6 caracteres.'
-    return
-  }
+  if (!isFormValid.value) return
 
   loading.value = true
-  errorMsg.value = ''
 
   try {
     const userToUpdate: UserProfile = {
       ...props.profile,
       password: newPassword.value
     }
-
-    console.log('Payload enviado:', userToUpdate);
 
     await userService.updateUser(userToUpdate)
 
@@ -127,7 +139,12 @@ async function handleUpdatePassword() {
 
   } catch (error) {
     console.error(error)
-    errorMsg.value = 'Erro ao atualizar senha. Tente novamente.'
+    toast.add({
+      severity: 'error',
+      summary: 'Erro',
+      detail: 'Erro ao atualizar senha. Tente novamente.',
+      life: 3000
+    })
   } finally {
     loading.value = false
   }
