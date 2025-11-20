@@ -8,7 +8,7 @@ export function transformUsers(appUser: AppUser):AppUserTable {
     id: appUser.id,
     email: appUser.email,
     role: appUser.role.rlName,
-    state: appUser.verified ? "Ativo": "Pendente"})
+    state: appUser.emailVerified ? "Ativo": "Pendente"})
   return readyForTableUser.value
 }
 

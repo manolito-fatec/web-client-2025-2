@@ -12,6 +12,24 @@ export const authService = {
     return api.post('/auth/login', loginData)
   },
 
+ async approval(id: number): Promise<void>
+  {
+    try
+    {
+      const response = await api.patch(`/auth/approval/${id}`);
+      return response.data;
+    } catch (error: any) {
+        console.error(`Erro ao aprovar o usuário com id: ${id}`, error);
+        throw new Error(
+            error?.response?.status === 408
+                ? 'Tempo de resposta excedido.'
+                : error?.response?.status === 500
+                ? 'Erro interno.'
+                : `Erro ao aprovar o usuário com id: ${id}.`
+        );
+    }
+  },
+
   logout() {
     useAuthStore().logout().then(() => {
       router.push('/')

@@ -29,5 +29,41 @@ export const userService = {
             console.error('Erro ao atualizar usuário:', error);
             throw new Error('Não foi possível salvar as alterações.');
         }
+    },
+
+    async updateRole(id: number, role: string): Promise<void>
+    {
+        try {
+            const response = await api.post('/user/role', { id, role });
+            return response.data;
+        } catch (error: any) {
+            console.error(`Erro ao alterar papel:`, error);
+            throw new Error(
+                error?.response?.status === 408
+                    ? 'Tempo de resposta excedido.'
+                    : error?.response?.status === 500
+                    ? 'Erro interno.'
+                    : 'Erro ao alterar papel.'
+            );
+        }
+    },
+
+    async deleteUser(id: number): Promise<void>
+    {
+        try
+        {
+            const response = await api.delete(`/user?id=${id}`);
+            return response.data;
+        } 
+        catch (error: any) {
+            console.error('Erro ao deletar usuário:', error);
+            throw new Error(
+                error?.response?.status === 408
+                    ? 'Tempo de resposta excedido.'
+                    : error?.response?.status === 500
+                    ? 'Erro interno.'
+                    : 'Erro ao deletar usuário.'
+            );
+        }
     }
 };
