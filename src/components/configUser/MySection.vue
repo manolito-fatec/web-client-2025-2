@@ -21,7 +21,7 @@
                 </TabPanel>
 
                 <TabPanel value="2">
-                    <SecurityTab @reset-password="resetPassword" />
+                    <SecurityTab :profile="profile" />
                 </TabPanel>
 
                 <TabPanel value="3">

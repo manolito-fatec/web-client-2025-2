@@ -51,7 +51,8 @@ watch(() => props.insights, () => {
       <ul v-if="paginatedInsights && paginatedInsights.length > 0" class="insight-card-list">
         <li v-for="product in paginatedInsights" :key="product.id" class="insight-card-item">
           <div class="product-title">
-            <strong>{{ product.productName }}</strong>
+            <strong>Cliente: {{ product.companyName }}</strong>
+            <span v-if="product.productName"> - Produto: {{ product.productName }}</span>
           </div>
           <ul class="themes-list">
             <li v-for="theme in product.insights" :key="theme.theme">
