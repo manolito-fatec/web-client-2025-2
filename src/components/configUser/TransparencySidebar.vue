@@ -74,36 +74,34 @@ function acceptTerms() {
 }
 
 onMounted(() => {
-  const user: Ref<string> = ref<string>(getSessionItem('userId') as string);
+  const userId = getSessionItem('userId');
 
-  if (getSessionItem('userId')) {
-    const userId = getSessionItem('userId');
-    if (userId) {
-      getActualTermByUser(userId as string).then((response) => {
-        const actualCheks = ref([]);
+  if (userId) {
+    getActualTermByUser(userId as string).then((response) => {
 
-        response.checks.forEach((check) => {
-          const checkData = {
-            checkId: check.checkId,
-            label: check.label,
-            required: check.required!,
-            checked: check.check
-          };
+      const tempChecks: any[] = [];
 
-          actualCheks.value.push(checkData);
-        });
-
-        console.log(response);
-
-        actualTerm.value = {
-          termsId: response.term.termsId,
-          title: response.term.title,
-          content: response.term.content,
-          checkList: actualCheks.value
+      response.checks.forEach((check: any) => {
+        const checkData = {
+          checkId: check.checkId,
+          label: check.label,
+          required: check.required!,
+          checked: check.check
         };
 
+        tempChecks.push(checkData);
       });
-    }
+
+      console.log(response);
+
+      actualTerm.value = {
+        termsId: response.term.termsId,
+        title: response.term.title,
+        content: response.term.content,
+        checkList: tempChecks
+      };
+
+    });
   }
 });
 </script>
