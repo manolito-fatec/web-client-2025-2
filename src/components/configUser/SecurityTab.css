@@ -99,6 +99,30 @@
   line-height: 1.6;
 }
 
+.btn-dialog-cancel {
+    color: #64748b !important; 
+}
+
+.btn-dialog-cancel:hover {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important; 
+}
+
+.btn-dialog-save {
+    background-color: #0f172a !important; 
+    border-color: #0f172a !important;
+    color: #ffffff !important;
+}
+
+.btn-dialog-save:hover {
+    background-color: #1e293b !important; 
+    border-color: #1e293b !important;
+}
+
+.btn-dialog-save:focus {
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #0f172a !important;
+}
+
 @media (max-width: 768px) {
   .security-content {
     grid-template-columns: 1fr;

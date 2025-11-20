@@ -56,6 +56,9 @@
         }"
       />
     </div>
+
+    <slot name="actions-start"></slot>
+
     <div class="button-group">
       <button class="btn btn-clear" @click="resetFilters">Limpar</button>
       <button class="btn btn-apply" @click="applyFilters">Aplicar</button>
