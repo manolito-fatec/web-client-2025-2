@@ -62,9 +62,6 @@ import { onMounted, ref, computed, type Ref } from 'vue'
 import { getUserTableData } from '@/components/UsersTable/UserTableUtils.ts'
 
 const toast = useToast()
-const props = defineProps<{
-  appUsers: AppUserTable[]
-}>()
 
 const appUsersInTable: Ref<AppUserTable[]> = ref<AppUserTable[]>([])
 const searchEmail = ref('')
@@ -87,7 +84,7 @@ function updateUsers () {
   appUsersInTable.value = getUserTableData()
 }
 
-const deleteUser = (user: AppUserTable) => {
+const deleteUser = (user: AppUserTable) =>{
   api
     .delete('user?id=' + user.id)
     .then((response) => {
