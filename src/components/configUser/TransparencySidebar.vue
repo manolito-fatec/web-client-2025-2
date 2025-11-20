@@ -1,6 +1,6 @@
 <template>
   <Toast />
-  
+
   <div class="transparency-card">
     <div class="card-header">
       <div class="card-title">
@@ -11,7 +11,7 @@
         Acesso facilitado: finalidade, base, retenção, DPO, direitos.
       </div>
     </div>
-    
+
     <div class="card-content">
       <div class="terms-section">
         <div class="terms-row">
@@ -39,63 +39,22 @@
       </div>
     </div>
 
-    <Dialog v-model:visible="termsOpen" modal :style="{ width: '50rem' }" :dismissableMask="true">
-      <template #header>
-        <div class="dialog-header">
-          <h2 class="dialog-title">Termo de Uso da Plataforma</h2>
-          <p class="dialog-description">
-            Condições de uso do serviço; vínculo contratual entre empresa cliente e controladora.
-          </p>
-        </div>
-      </template>
-
-      <div class="dialog-content">
-        <div class="terms-content">
-          <p class="terms-item">
-            <strong>Objeto:</strong> acesso e utilização da aplicação para visualização de insights operacionais.
-          </p>
-          <p class="terms-item">
-            <strong>Contas:</strong> credenciais individuais; proibição de compartilhamento de senhas; obrigação de manter informações atualizadas.
-          </p>
-          <p class="terms-item">
-            <strong>Responsabilidades:</strong> uso conforme políticas internas da empresa cliente; não violar confidencialidade ou direitos de terceiros.
-          </p>
-          <p class="terms-item">
-            <strong>Privacidade:</strong> tratamento de dados pessoais conforme LGPD; canais de exercício de direitos.
-          </p>
-          <p class="terms-item">
-            <strong>Segurança:</strong> reporte de incidentes; medidas técnicas adotadas pela plataforma.
-          </p>
-          <p class="terms-item">
-            <strong>Retenção e Encerramento:</strong> regras de retenção e eliminação após término do contrato ou solicitação do titular, respeitando bases legais.
-          </p>
-          <p class="terms-item">
-            <strong>Foro e Vigência:</strong> disposições contratuais padrão para solução de conflitos e prazo de vigência.
-          </p>
-        </div>
-      </div>
-
-      <template #footer>
-        <div class="dialog-footer">
-          <button class="btn-accept" @click="acceptTerms">
-            <CheckCircle2 class="icon-sm" />
-            Aceitar termos de uso
-          </button>
-        </div>
-      </template>
-    </Dialog>
+    <ContractComponent v-model:visible="termsOpen" :actualTerm="actualTerm" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import Dialog from 'primevue/dialog'
+import { onMounted, type Ref, ref } from 'vue'
 import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
-import { BookOpen, Eye, Mail, Globe, CheckCircle2 } from 'lucide-vue-next'
+import { BookOpen, Eye, Mail } from 'lucide-vue-next'
+import ContractComponent from '@/components/contract/ContractComponent.vue'
+import { getActualTermByUser } from '@/api/ContractApi.ts'
+import { getSessionItem } from '@/api/session/SessionManagement.ts'
 
 const termsOpen = ref(false)
-const termsAcceptedAt = ref<string | null>(null);
+const termsAcceptedAt = ref<string | null>(null)
+const actualTerm = ref()
 const toast = useToast()
 
 function nowStr() {
@@ -110,9 +69,43 @@ function acceptTerms() {
     severity: 'success',
     summary: 'Termos Aceitos',
     detail: 'Você aceitou os termos de uso com sucesso.',
-    life: 3000
+    life: 3000,
   })
 }
+
+onMounted(() => {
+  const user: Ref<string> = ref<string>(getSessionItem('userId') as string);
+
+  if (getSessionItem('userId')) {
+    const userId = getSessionItem('userId');
+    if (userId) {
+      getActualTermByUser(userId as string).then((response) => {
+        const actualCheks = ref([]);
+
+        response.checks.forEach((check) => {
+          const checkData = {
+            checkId: check.checkId,
+            label: check.label,
+            required: check.required!,
+            checked: check.check
+          };
+
+          actualCheks.value.push(checkData);
+        });
+
+        console.log(response);
+
+        actualTerm.value = {
+          termsId: response.term.termsId,
+          title: response.term.title,
+          content: response.term.content,
+          checkList: actualCheks.value
+        };
+
+      });
+    }
+  }
+});
 </script>
 
 <style scoped>

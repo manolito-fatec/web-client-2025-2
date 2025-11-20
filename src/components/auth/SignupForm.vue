@@ -1,4 +1,8 @@
 <template>
+  <ContractComponent
+    v-model:visible="termsOpen"
+    :actualTerm="actualTerm"
+  />
   <div class="signup-form">
     <p class="info-text">Digite seu e-mail corporativo para receber o link de confirmação.</p>
 
@@ -53,13 +57,16 @@
 <script setup lang="ts">
 import { ref, computed, type Ref } from 'vue'
 import type { NewUser } from '@/types/NewUser.ts'
-import { signApi } from '@/api/SignApi.ts'
 import LoadingComponent from '../LoadingComponent.vue'
 import router from '@/router'
 import { setSessionItem } from '@/api/session/SessionManagement.ts'
+import ContractComponent from '@/components/contract/ContractComponent.vue'
+import { getActualTerm } from '@/api/ContractApi.ts'
 
 const emit = defineEmits(['toggleSign'])
 const created = ref<boolean>(false)
+const termsOpen:Ref<boolean> = ref<boolean>(false)
+const actualTerm: Ref<any> = ref(null)
 
 const email: Ref<string> = ref<string>('')
 const name: Ref<string> = ref<string>('')
@@ -155,7 +162,11 @@ function handlePhoneInput() {
 
 function handleSignIn() {
   if (isFormValid.value) {
-    loading.value = true
+    getActualTerm().then((response) => {
+      actualTerm.value = response
+      termsOpen.value = true;
+    })
+
     const newUser: Ref<NewUser> = ref<NewUser>({
       email: email.value,
       password: password.value,
@@ -163,7 +174,6 @@ function handleSignIn() {
       name: name.value,
     })
     setSessionItem('newUser', JSON.stringify(newUser.value))
-    router.push('/contract')
   } else {
     console.log('Formulário inválido. Corrija os erros.')
   }

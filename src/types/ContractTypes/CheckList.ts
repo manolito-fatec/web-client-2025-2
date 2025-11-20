@@ -7,5 +7,6 @@ export interface CheckList{
 export interface CheckInRegisterAndUpdate{
   "checkId": number,
   "label": string,
+  "required"?: boolean,
   "check": boolean
 }

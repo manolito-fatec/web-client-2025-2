@@ -1,109 +1,127 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content">
-      <header class="modal-header">
-        <h2>{{ actualTerm?.title || 'Termos de Uso e Privacidade' }}</h2>
-        <button class="close-button" @click="closeAndGoHome">X</button>
-      </header>
+  <Teleport to="body">
+    <div v-if="isOpen" class="modal-overlay" @click="isOpen = false">
+      <div class="modal-content" @click.stop>
 
-      <div class="terms-scroll-area">
-        <section class="terms-content-section">
-          <div class="version-info">
-            <span class="version-text">Conteúdo dos Termos</span>
-          </div>
+        <header class="modal-header">
+          <h2>{{ actualTerm?.title || 'Termos de Uso e Privacidade' }}</h2>
+        </header>
 
-          <div class="lgpd-text">
-            <p>{{ actualTerm?.content }}</p>
-          </div>
-        </section>
-
-        <section class="terms-checkboxes-section">
-          <template v-if="actualTerm && actualTerm.checkList">
-            <div
-              v-for="(item, index) in actualTerm.checkList"
-              :key="item.checkId"
-              class="dynamic-term-container"
-            >
-              <div class="term-item" :class="item.required ? 'required' : 'optional'">
-                <label class="term-label">
-                  <input type="checkbox" v-model="checkStates[item.checkId]" />
-                  <div class="text-group">
-                    <span class="term-main-line">
-                      <span class="term-title">
-                        {{ item.required ? 'Cláusula obrigatória:' : 'Cláusula opcional:' }}
-                      </span>
-                      <span class="term-description">
-                        {{ item.label }}
-                      </span>
-                    </span>
-                  </div>
-                </label>
-              </div>
-
-              <div v-if="index < actualTerm.checkList.length - 1" class="separator"></div>
+        <div class="terms-scroll-area">
+          <section class="terms-content-section">
+            <div class="version-info">
+              <span class="version-text">Conteúdo dos Termos</span>
             </div>
-          </template>
 
-          <div v-else>
-            <p>Carregando termos...</p>
-          </div>
-        </section>
-      </div>
+            <div class="lgpd-text">
+              <p>{{ actualTerm?.content }}</p>
+            </div>
+          </section>
 
-      <footer class="modal-footer">
-        <span class="optional-count"
+          <section class="terms-checkboxes-section">
+            <template v-if="actualTerm && actualTerm.checkList">
+              <div
+                v-for="(item, index) in actualTerm.checkList"
+                :key="item.checkId"
+                class="dynamic-term-container"
+              >
+                <div class="term-item" :class="item.required ? 'required' : 'optional'">
+                  <label class="term-label">
+                    <input type="checkbox" v-model="checkStates[item.checkId]" />
+                    <div class="text-group">
+                      <span class="term-main-line">
+                        <span class="term-title">
+                          {{ item.required ? 'Cláusula obrigatória:' : 'Cláusula opcional:' }}
+                        </span>
+                        <span class="term-description">
+                          {{ item.label }}
+                        </span>
+                      </span>
+                    </div>
+                  </label>
+                </div>
+
+                <div v-if="index < actualTerm.checkList.length - 1" class="separator"></div>
+              </div>
+            </template>
+
+            <div v-else>
+              <p>Carregando termos...</p>
+            </div>
+          </section>
+        </div>
+
+        <footer class="modal-footer">
+          <span class="optional-count"
           >Opcionais aceitos: {{ acceptedOptionalCount }}/{{ totalOptionalCount }}</span
-        >
-        <button v-if="getSessionItem('newUser')" class="register-link-button" :disabled="!isFormValid" @click="submitTerms">
-          Enviar link de cadastro
-        </button>
-      </footer>
+          >
+          <button v-if="getSessionItem('newUser')" class="register-link-button" :disabled="!isFormValid" @click="submitTerms">
+            Enviar link de cadastro
+          </button>
+          <button v-if="currentUrl.includes('config-screen')" class="register-link-button" :disabled="!isFormValid" @click="updateTerms">
+            Atualizar termo
+          </button>
+        </footer>
+      </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, type Ref, onMounted } from 'vue'
+import { ref, computed, type Ref, watch } from 'vue'
 import type { NewUser } from '@/types/NewUser.ts'
-import { getSessionItem, setSessionItem } from '@/api/session/SessionManagement.ts'
+import { getSessionItem } from '@/api/session/SessionManagement.ts'
 import { signApi } from '@/api/SignApi.ts'
 import { useToast } from 'primevue/usetoast'
-import { getActualTerm } from '@/api/ContractApi.ts'
 import type { CheckInRegisterAndUpdate } from '@/types/ContractTypes/CheckList.ts'
 import router from '@/router'
+import { updateTermByUser } from '@/api/ContractApi.ts'
 
 const toast = useToast()
 const showError = (errorSum: string, errorMsg: string) => {
   toast.add({ severity: 'error', summary: errorSum, detail: errorMsg, life: 6000 })
 }
 
+const currentUrl = window.location.href;
+
+const props = defineProps<{
+  visible: boolean
+  actualTerm?: any
+}>()
+
+const emit = defineEmits<{
+  'update:visible': [value: boolean]
+}>()
+
+const isOpen = computed({
+  get: () => props.visible,
+  set: (value) => emit('update:visible', value),
+})
+
 const newUser: Ref<NewUser> = ref<NewUser>(JSON.parse(<string>getSessionItem('newUser')))
 
-const actualTerm: Ref<any> = ref(null)
 const checkStates: Ref<Record<number, boolean>> = ref({})
 
 const acceptedOptionalCount = computed(() => {
-  if (!actualTerm.value || !actualTerm.value.checkList) return 0
-
-  const optionalChecks = actualTerm.value.checkList.filter((item: any) => !item.required)
+  if (!props.actualTerm || !props.actualTerm.checkList) return 0
+  const optionalChecks = props.actualTerm.checkList.filter((item: any) => !item.required)
   return optionalChecks.filter((item: any) => checkStates.value[item.checkId] === true).length
 })
 
 const totalOptionalCount = computed(() => {
-  if (!actualTerm.value || !actualTerm.value.checkList) return 0
-  return actualTerm.value.checkList.filter((item: any) => !item.required).length
+  if (!props.actualTerm || !props.actualTerm.checkList) return 0
+  return props.actualTerm.checkList.filter((item: any) => !item.required).length
 })
 
 const isFormValid = computed(() => {
-  if (!actualTerm.value || !actualTerm.value.checkList) return false
-
-  const requiredItems = actualTerm.value.checkList.filter((item: any) => item.required)
+  if (!props.actualTerm || !props.actualTerm.checkList) return false
+  const requiredItems = props.actualTerm.checkList.filter((item: any) => item.required)
   return requiredItems.every((item: any) => checkStates.value[item.checkId] === true)
 })
 
 const submitTerms = () => {
   if (isFormValid.value) {
-    const formattedCheckList: CheckInRegisterAndUpdate[] = actualTerm.value.checkList.map(
+    const formattedCheckList: CheckInRegisterAndUpdate[] = props.actualTerm.checkList.map(
       (item: any) => {
         return {
           checkId: item.checkId,
@@ -118,7 +136,7 @@ const submitTerms = () => {
       email: newUser.value.email,
       phone: newUser.value.phone,
       password: newUser.value.password,
-      termsId: actualTerm.value.termsId,
+      termsId: props.actualTerm.termsId,
       termAccepted: true,
       checkList: formattedCheckList,
     }
@@ -132,31 +150,62 @@ const submitTerms = () => {
         life: 12000,
       })
       sessionStorage.removeItem('newUser')
-      closeAndGoHome()
+      isOpen.value = false;
+      router.push('/')
     })
-    closeAndGoHome()
   } else {
     console.log('Termos obrigatórios não aceitos.')
   }
 }
 
-const closeAndGoHome = () => {
-  router.push('/')
+const updateTerms = () => {
+  if (isFormValid.value) {
+    const formattedCheckList: CheckInRegisterAndUpdate[] = props.actualTerm.checkList.map(
+      (item: any) => {
+        return {
+          checkId: item.checkId,
+          label: item.label,
+          check: checkStates.value[item.checkId],
+        }
+      },
+    )
+
+    const updatedTerm = {
+      userId: getSessionItem('userId'),
+      termsId: props.actualTerm.termsId,
+      termAccepted: true,
+      checkList: formattedCheckList
+    }
+
+
+    updateTermByUser(updatedTerm).then(() => {
+      toast.add({
+        severity: 'success',
+        summary: 'Cláusulas atualizadas!',
+        life: 3000,
+      })
+      isOpen.value = false;
+    })
+  } else {
+    console.log('Termos obrigatórios não aceitos.')
+  }
 }
 
-onMounted(() => {
-  getActualTerm().then((response) => {
-    actualTerm.value = response
-
+watch(
+  () => props.actualTerm,
+  (newTerm) => {
+    console.log(newTerm)
     const initialStates: Record<number, boolean> = {}
-    if (response && response.checkList) {
-      response.checkList.forEach((item: any) => {
-        initialStates[item.checkId] = false
+    if (newTerm && newTerm.checkList) {
+      newTerm.checkList.forEach((item: any) => {
+        initialStates[item.checkId] = item.checked
       })
     }
+    console.log(initialStates)
     checkStates.value = initialStates
-  })
-})
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>
@@ -164,14 +213,14 @@ onMounted(() => {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #f4f7fe;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  padding-top: 5vh;
-  z-index: 1000;
+  align-items: center;
+  z-index: 9999;
+  backdrop-filter: blur(2px);
 }
 
 .modal-content {
@@ -179,42 +228,32 @@ onMounted(() => {
   border-radius: 8px;
   width: 90%;
   max-width: 950px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
-  max-height: 90vh;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .modal-header {
   padding: 24px;
-  position: relative;
+  border-bottom: 1px solid #eee;
 }
 
 .modal-header h2 {
-  margin: 0 0 4px 0;
+  margin: 0;
   font-size: 1.5em;
   font-weight: 600;
-}
-
-.subtitle {
-  font-size: 0.9em;
-  color: #6a6a6a;
-  margin: 0;
-}
-
-.close-button {
-  position: absolute;
-  top: 24px;
-  right: 36px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #000000;
-  padding: 0;
+  color: #333;
 }
 
 .terms-scroll-area {
-  padding: 0 24px;
+  padding: 24px;
   overflow-y: auto;
   flex-grow: 1;
 }
@@ -223,6 +262,7 @@ onMounted(() => {
   padding-bottom: 20px;
   border: 1px solid #e4e4e4;
   border-radius: 15px;
+  margin-bottom: 20px;
 }
 
 .version-info {
@@ -231,33 +271,19 @@ onMounted(() => {
   align-items: center;
   padding: 12px 16px;
   background-color: #f7f7f7;
-  border-radius: 16px;
+  border-radius: 16px 16px 0 0;
   font-size: 0.8em;
-  margin-bottom: 20px;
+  border-bottom: 1px solid #e4e4e4;
 }
 
-.version-text {
-  font-weight: 600;
-}
-
-.hash-example {
-  color: #999;
+.lgpd-text {
+  padding: 15px;
 }
 
 .lgpd-text p {
   line-height: 1.5;
   font-size: 0.95em;
-  padding-left: 10px;
-}
-
-.lgpd-text ul {
-  list-style-type: disc;
-  margin: 10px 0 15px 20px;
-  padding-left: 10px;
-}
-
-.lgpd-text li {
-  margin-bottom: 5px;
+  margin: 0;
 }
 
 .term-item {
@@ -273,10 +299,12 @@ onMounted(() => {
 }
 
 .term-label input[type='checkbox'] {
-  margin-top: 2px;
-  margin-right: 10px;
+  margin-top: 4px;
+  margin-right: 12px;
   flex-shrink: 0;
   cursor: pointer;
+  width: 18px;
+  height: 18px;
 }
 
 .text-group {
@@ -287,37 +315,20 @@ onMounted(() => {
 
 .term-main-line {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 5px;
 }
 
 .term-title {
-  font-weight: bold;
+  font-weight: 700;
   color: #333;
-  margin-right: 5px;
-  line-height: 1.4;
-}
-
-.term-description {
-  font-weight: normal;
-  color: #333;
-  line-height: 1.4;
-  flex-grow: 1;
-}
-
-.term-version {
-  font-size: 0.8em;
-  color: #999;
-  font-weight: normal;
-  margin-left: 10px;
   white-space: nowrap;
 }
 
-.term-details {
-  font-size: 0.85em;
-  color: #6a6a6a;
-  margin: 0 0 0 26px;
-  line-height: 1.4;
+.term-description {
+  font-weight: 400;
+  color: #555;
 }
 
 .separator {
@@ -331,7 +342,8 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-shrink: 0;
+  background-color: #fff;
+  border-radius: 0 0 8px 8px;
 }
 
 .optional-count {
@@ -340,21 +352,20 @@ onMounted(() => {
 }
 
 .register-link-button {
-  padding: 10px 20px;
+  padding: 12px 24px;
   background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.9em;
+  font-size: 0.95em;
   transition: background-color 0.2s;
 }
 
 .register-link-button:disabled {
-  background-color: #f0f0f0;
+  background-color: #e0e0e0;
   color: #a0a0a0;
   cursor: not-allowed;
-  box-shadow: none;
 }
 </style>

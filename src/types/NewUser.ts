@@ -1,4 +1,4 @@
-import type { CheckInRegisterAndUpdate, CheckList } from '@/types/ContractTypes/CheckList.ts'
+import type { CheckInRegisterAndUpdate } from '@/types/ContractTypes/CheckList.ts'
 
 export interface NewUser {
   name: string;
@@ -7,5 +7,5 @@ export interface NewUser {
   password: string;
   termsId?: number;
   termAccepted?: boolean;
-  checkList: CheckInRegisterAndUpdate[];
+  checkList?: CheckInRegisterAndUpdate[];
 }
