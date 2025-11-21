@@ -2,7 +2,7 @@
   <div class="export-button-container">
     <Button
       type="button"
-      label="Mais ações"
+      label="Exportar"
       icon="pi pi-chevron-down"
       iconPos="right"
       @click="toggleMenu"
@@ -20,8 +20,8 @@ import Button from 'primevue/button'
 import Menu from 'primevue/menu'
 import html2canvas from 'html2canvas'
 
-import { exportCsv, exportPdf } from '@/api/ExportApi'
-import type { PdfExportRequest } from '@/types/InsightType/ExportType'
+import { exportCsv, exportPdf } from '@/api/ExportApi.ts'
+import type { PdfExportRequest } from '@/types/InsightType/ExportType.ts'
 
 const props = defineProps<{
   metricsSection: HTMLElement | null

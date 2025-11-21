@@ -69,7 +69,7 @@ import {
 } from '@/components/ChartService.ts'
 import NavigationBar from '@/components/navigationBar/NavigationBar.vue'
 
-import ExportButton from '@/components/ExportButton.vue'
+import ExportButton from '@/components/exportButton/ExportButton.vue'
 
 ChartJS.register(
   CategoryScale,
@@ -103,13 +103,17 @@ const chartOptions: ChartOptions<'bar' | 'line'> = {
   },
 }
 
+const formatNumber = (num: number): string => {
+  return num.toLocaleString('pt-BR')
+}
+
 const applyFilters = async (data: FilterOptions) => {
   loadingValue.value = true
   try {
     const response = await getChartDate(data)
+    totalOfTicketsValue.value = formatNumber(response.ticketsCount)
     reOpenedValue.value = `${response.recidivismRate.toPrecision(2)}%`
     averageTimeValue.value = `${response.ticketClosureTimeInHours.toPrecision(4)} Horas`
-    totalOfTicketsValue.value = `${response.ticketsCount}`
     slaCompliancePercentualValue.value = `${response.slaCompliancePercentualDto.toPrecision(2)}%`
     productChartData.value = transformTicketsByProductData(response)
     timeChartData.value = transformTicketsByPeriod(response)

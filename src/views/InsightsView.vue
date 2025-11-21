@@ -5,28 +5,22 @@
     <div class="filter-card">
       <div class="p-field-group">
         <div class="p-field">
-          <label for="client-filter">Cliente(s)</label>
-          <MultiSelect
+          <CustomMultiSelect
             id="client-filter"
+            label="Cliente(s)"
             v-model="selectedClients"
             :options="clientOptions"
-            optionLabel="name"
             placeholder="Selecione um ou mais clientes"
-            class="client-multiselect"
-            showClear
           />
         </div>
 
         <div class="p-field">
-          <label for="product-filter">Produto(s)</label>
-          <MultiSelect
+          <CustomMultiSelect
             id="product-filter"
+            label="Produto(s)"
             v-model="selectedProducts"
             :options="productOptions"
-            optionLabel="name"
             placeholder="Selecione um ou mais produtos"
-            class="client-multiselect"
-            showClear
           />
         </div>
 
@@ -96,25 +90,24 @@
 import { onMounted, ref, type Ref, watch, computed } from 'vue'
 
 import NavigationBar from '@/components/navigationBar/NavigationBar.vue'
-import MultiSelect from 'primevue/multiselect'
 import LoadingComponent from '@/components/LoadingComponent.vue'
 import InsightCard from '@/components/insightSection/InsightCard.vue'
 import ParetoChart from '@/components/ParetoChart.vue'
 import ForecasterCard from '@/components/insightSection/ForecasterCard.vue'
 import SlaPredictionCard from '@/components/SlaPredictionCard.vue'
+import CustomMultiSelect from '@/components/customFilterSelect/CustomFilterSelect.vue'
+import ExportButton from '@/components/exportButton/ExportButton.vue'
+
 import type { SlaPredictionItem } from '@/types/InsightType/Insight.ts'
+import type { RootCauseAnalysisData } from '@/types/RootCauseAnalysisResponse'
+import type { FilterCompany } from '@/types/Company'
+import type { SelectListOption } from '@/types/SelectListOption'
+import type { Forecaster, ProductInsight } from '@/types/InsightType/Insight.ts'
 
 import { getRootCauseAnalysis } from '@/api/RootCauseAnalysisApi'
 import { fetchProductInsights } from '@/api/InsightCardApi'
 import { fetchFilterOptions } from '@/api/FiltersApi'
 import { fetchSlaPrediction } from '@/api/SlaPredictionApi'
-
-import ExportButton from '@/components/ExportButton.vue'
-
-import type { RootCauseAnalysisData } from '@/types/RootCauseAnalysisResponse'
-import type { FilterCompany } from '@/types/Company'
-import type { SelectListOption } from '@/types/SelectListOption'
-import type { Forecaster, ProductInsight } from '@/types/InsightType/Insight.ts'
 
 const selectedClients: Ref<FilterCompany[]> = ref([])
 const clientOptions: Ref<FilterCompany[]> = ref([])
@@ -309,9 +302,7 @@ watch(
 
 onMounted(async () => {
   await loadFilterOptions()
-
   fetchData()
-
   isInitialLoad.value = false
 })
 </script>
@@ -379,16 +370,6 @@ onMounted(async () => {
   gap: 0.5rem;
   flex: 1;
   max-width: 20rem;
-}
-
-.p-field label {
-  font-weight: bold;
-  color: #555;
-  font-size: 0.9rem;
-}
-
-.client-multiselect {
-  width: 100%;
 }
 
 .chart-card-full {
