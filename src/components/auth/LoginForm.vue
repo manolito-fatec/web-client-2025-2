@@ -25,6 +25,7 @@
       v-if="showTermsModal"
       v-model:visible="showTermsModal"
       :actualTerm="pendingTermData"
+      :pendingMode="pendingMode"
     />
   </div>
 </template>
@@ -36,6 +37,7 @@ import { useAuthStore } from '@/api/session/auth.ts'
 import { useToast } from 'primevue/usetoast'
 import { getSessionItem } from '@/api/session/SessionManagement.ts'
 import ContractComponent from '@/components/contract/ContractComponent.vue'
+import api from '@/api/axios/AxiosConfig.ts'
 
 const toast = useToast()
 const emit = defineEmits(['toggleSign'])
@@ -46,6 +48,7 @@ const isLoading: Ref<boolean> = ref<boolean>(false)
 
 const showTermsModal: Ref<boolean> = ref(false);
 const pendingTermData: Ref<any> = ref(null);
+const pendingMode:Ref<boolean> = ref(false)
 
 const showError = (errorSum: string, errorMsg: string) => {
   toast.add({ severity: 'error', summary: errorSum, detail: errorMsg, life: 6000 });
@@ -53,18 +56,13 @@ const showError = (errorSum: string, errorMsg: string) => {
 
 async function checkPendingTerms(userId: string) {
   try {
-    const response = await fetch(`http://localhost:8080/api/term/user/pending/${userId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    });
-
-    if (!response.ok) {
+    const response = await api.get('http://localhost:8080/api/term/user/pending/' + userId);
+    console.log(response.data);
+    if (!response.data) {
       throw new Error('Falha ao verificar termos pendentes');
     }
 
-    return await response.json();
+    return await response.data;
   } catch (error) {
     console.error(error);
     return null;
@@ -88,7 +86,7 @@ async function handleLogin() {
           const termStatus = await checkPendingTerms(userId as string);
 
           if (termStatus && termStatus.isActive === true) {
-
+            pendingMode.value = true;
             pendingTermData.value = {
               termsId: termStatus.term.termsId,
               title: termStatus.term.title,
