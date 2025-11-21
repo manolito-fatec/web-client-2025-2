@@ -83,6 +83,7 @@ import { authService } from '@/api/AuthService'
 
 const toast = useToast()
 const confirm = useConfirm();
+
 const appUsersInTable: Ref<AppUserTable[]> = ref<AppUserTable[]>([])
 const searchEmail = ref('')
 
