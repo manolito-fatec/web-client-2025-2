@@ -35,7 +35,7 @@
                 LGPD: art. 18 (eliminação) com retenções residuais justificadas.
             </p>
             <p class="dialog-message">
-                Deseja prosseguir? Você perderá o acesso imediato e receberá e-mail com protocolo e prazos.
+                Deseja prosseguir? Você perderá o acesso imediatamente.
             </p>
 
             <template #footer>
@@ -64,6 +64,9 @@ import PrivacyTab from './PrivacyTab.vue'
 import SecurityTab from './SecurityTab.vue'
 import AuditTab from './AuditTab.vue'
 import type { AuditDto, UserProfile } from '@/types/ConfigUser/UserTypes'
+import api from '@/api/axios/AxiosConfig.ts'
+import { authService } from '@/api/AuthService.ts'
+import router from '@/router'
 
 const toast = useToast()
 const toastRef = ref(null)
@@ -237,12 +240,26 @@ function handleDelete() {
     accountClosed.value = true
     showDeleteDialog.value = false
     addAudit('Solicitação de eliminação', 'Encerramento de conta')
-    toast.add({
-        severity: 'warn',
-        summary: 'Solicitação registrada',
-        detail: 'Eliminação conforme política de retenção',
-        life: 3000
-    })
+    api
+      .delete('user?id=' + sessionStorage.getItem('userId'))
+      .then((response) => {
+        switch (response.status) {
+          case 200:
+            toast.add({ severity: 'success', summary: 'Usuário deletado!', life: 3000 })
+            authService.logout();
+            router.push('/');
+            break
+          case 408:
+            toast.add({ severity: 'error', summary: 'Tempo de resposta excedido.', life: 3000 })
+            break
+          case 500:
+            toast.add({ severity: 'error', summary: 'Erro interno.', life: 3000 })
+            break
+        }
+      })
+      .catch(() => {
+        toast.add({ severity: 'error', summary: 'Erro ao deletar usuário.', life: 3000 })
+      })
 }
 </script>
 
