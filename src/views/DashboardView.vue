@@ -109,7 +109,7 @@ const applyFilters = async (data: FilterOptions) => {
     const response = await getChartDate(data)
     reOpenedValue.value = `${response.recidivismRate.toPrecision(2)}%`
     averageTimeValue.value = `${response.ticketClosureTimeInHours.toPrecision(4)} Horas`
-    totalOfTicketsValue.value = `${response.ticketsCount}`
+    totalOfTicketsValue.value = response.ticketsCount.toLocaleString('pt-BR')
     slaCompliancePercentualValue.value = `${response.slaCompliancePercentualDto.toPrecision(2)}%`
     productChartData.value = transformTicketsByProductData(response)
     timeChartData.value = transformTicketsByPeriod(response)
