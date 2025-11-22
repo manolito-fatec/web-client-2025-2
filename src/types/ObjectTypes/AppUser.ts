@@ -8,4 +8,5 @@ export interface AppUser {
   password: string;
   role: Role;
   expiredate?: Date;
+  emailVerified: boolean
 }

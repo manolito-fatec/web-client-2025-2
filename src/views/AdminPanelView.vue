@@ -9,7 +9,6 @@
 import NavigationBar from '@/components/navigationBar/NavigationBar.vue'
 import UsersTable from '@/components/UsersTable/UsersTable.vue'
 
-
 </script>
 
 <style scoped>
