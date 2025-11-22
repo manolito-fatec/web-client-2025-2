@@ -2,6 +2,7 @@ import axios from '@/api/axios/AxiosConfig'
 import type { PdfExportRequest, CsvExportParams } from '@/types/InsightType/ExportType'
 
 const BASE_URL = 'http://localhost:8080/api/insights/export'
+const AUDIT_URL = 'http://localhost:8080/user/audit/csv'
 
 const downloadBlob = (data: Blob, filename: string) => {
   const url = window.URL.createObjectURL(new Blob([data]));
@@ -47,6 +48,22 @@ export const exportPdf = async (requestBody: PdfExportRequest) => {
     downloadBlob(response.data, filename)
   } catch (error) {
     console.error('Erro ao exportar PDF:', error)
+    throw error
+  }
+}
+
+export const exportAuditCsv = async (userEmail:string, userRole:string) => {
+  try{
+      const response = await axios.get(
+        `${AUDIT_URL}/${userEmail}/${userRole}`, 
+        {
+          responseType: 'blob'
+        }
+      )
+      const filename = `audit_export_${new Date().toISOString().split('T')[0]}.zip`
+      downloadBlob(response.data, filename) 
+  } catch (error) {
+    console.error('Erro ao exportar CSV/ZIP:', error)
     throw error
   }
 }

@@ -11,6 +11,8 @@ import './index.css'
 import router from './router'
 import {definePreset} from "@primeuix/themes";
 import ToastService from 'primevue/toastservice';
+import ConfirmationService from 'primevue/confirmationservice';
+import ConfirmDialog from 'primevue/confirmdialog';
 import 'primeicons/primeicons.css';
 
 const app = createApp(App)
@@ -38,6 +40,8 @@ const pardalPreset = definePreset(Aura, {
 app.use(createPinia())
 app.use(router)
 app.use(ToastService);
+app.use(ConfirmationService);
+app.component('ConfirmDialog', ConfirmDialog);
 app.use(PrimeVue, {
   theme: {
     preset: pardalPreset,

@@ -67,6 +67,7 @@ import type { AuditDto, UserProfile } from '@/types/ConfigUser/UserTypes'
 import api from '@/api/axios/AxiosConfig.ts'
 import { authService } from '@/api/AuthService.ts'
 import router from '@/router'
+import { exportAuditCsv } from '@/api/ExportApi'
 
 const toast = useToast()
 const toastRef = ref(null)
@@ -202,25 +203,39 @@ function exportCSV() {
     })
 }
 
-function exportAudit() {
-    const rows = [
-        ['id', 'evento', 'por', 'quando', 'onde', 'detalhe'],
-        ...audit.value.map((x) => [x.event, x.user, x.date, x.locale, x.details])
-    ]
-    const csv = csvString(rows)
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'auditoria.csv'
-    a.click()
-    URL.revokeObjectURL(url)
+const exportAudit = async () => {
+    const userRole = sessionStorage.getItem('role');
+    const userEmail = profile.email;
+    console.log("ROLE ->", userRole)
+    console.log("EMAIL ->", userEmail)
+    if (!userRole || !userEmail) {
+        toast.add({
+            severity: 'warn',
+            summary: 'Ação Bloqueada',
+            detail: 'Dados de usuário incompletos.',
+            life: 3000
+        });
+        return;
+    }
+    try {
+        await exportAuditCsv(userEmail, userRole);
 
-    toast.add({
-        severity: 'success',
-        summary: 'Auditoria exportada',
-        life: 3000
-    })
+        toast.add({
+            severity: 'success',
+            summary: 'Auditoria exportada',
+            detail: 'O arquivo .zip deve começar a baixar em breve.',
+            life: 3000
+        });
+
+    } catch (error) {
+        console.error('Falha na exportação do Audit Log:', error);
+        toast.add({
+            severity: 'error',
+            summary: 'Erro na Exportação',
+            detail: 'Não foi possível exportar o Audit Log. Tente novamente.',
+            life: 5000
+        });
+    }
 }
 
 function resetPassword() {

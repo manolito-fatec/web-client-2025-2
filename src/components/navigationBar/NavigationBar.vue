@@ -21,18 +21,12 @@
             @click="navigate('insights')"
           />
           <Button
-            label="Chamados"
-            text
-            plain
-            :class="['nav-item', { active: currentRouteName === 'chamados' }]"
-            @click="navigate('chamados')"
-          />
-          <Button
             label="Admin"
             text
             plain
             :class="['nav-item', { active: currentRouteName === 'admin' }]"
             @click="navigate('admin')"
+            v-if="isAdmin"
           />
         </nav>
       </div>
@@ -58,7 +52,7 @@
         </button>
         <div v-if="isDropdownOpen" class="dropdown-content">
           <router-link :to="{ name: 'user-config' }" class="config-button" @click="configHandler">
-            Configurações
+            Perfil do Usuário
           </router-link>
           <button @click="logoutHandler" class="logout-button">Logout</button>
         </div>
@@ -103,6 +97,15 @@ const navigate = (routeName: string) => {
     }
   }
 }
+
+const userRole = computed(() => {
+    const role = sessionStorage.getItem('role'); 
+    return role ? role.toLowerCase() : null;
+});
+
+const isAdmin = computed(() => {
+  return userRole.value === 'admin';
+});
 
 const logoutHandler = () => {
   authService.logout()
@@ -164,7 +167,7 @@ onUnmounted(() => {
 
 .navigation {
   display: flex;
-  gap: 1rem;
+  justify-content: space-evenly;
   align-items: center;
   border-bottom: 1px solid #e0e0e0;
   padding-bottom: 0;

@@ -8,4 +8,5 @@ import 'primeicons/primeicons.css'
 <template>
   <Toast />
   <RouterView />
+  <ConfirmDialog />
 </template>
