@@ -9,8 +9,6 @@
                 </svg>
 
                 <span class="logo-text">LGPD Center</span>
-
-                <span class="badge badge-secondary">Wireframe (mínimo LGPD)</span>
             </div>
 
             <div class="user-menu" ref="userMenuRef">
