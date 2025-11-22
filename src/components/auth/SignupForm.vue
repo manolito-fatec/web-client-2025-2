@@ -41,7 +41,6 @@
     <button class="btn primary" :disabled="!isFormValid" @click="handleSignIn">Ler os Termos de Uso</button>
     <button class="btn secondary" @click="emit('toggleSign')">Cancelar</button>
     <LoadingComponent v-if="loading"></LoadingComponent>
-    <p class="hint">Um e-mail será enviado com link válido por 24h.</p>
     <div v-if="created" class="email-sent">
       <h3>Verifique seu e-mail</h3>
       <p>Enviamos um link para concluir seu cadastro. Verifique sua caixa de entrada.</p>

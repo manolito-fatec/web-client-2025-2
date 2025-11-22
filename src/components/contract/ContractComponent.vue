@@ -55,10 +55,10 @@
           <span class="optional-count"
           >Opcionais aceitos: {{ acceptedOptionalCount }}/{{ totalOptionalCount }}</span
           >
-          <button v-if="getSessionItem('newUser')" class="register-link-button" :disabled="!isFormValid" @click="submitTerms">
+          <button v-if="getSessionItem('newUser') && !currentUrl.includes('config-screen')" class="register-link-button" :disabled="!isFormValid" @click="submitTerms">
             Enviar link de cadastro
           </button>
-          <button v-if="currentUrl.includes('config-screen') || currentUrl.includes('')" class="register-link-button" :disabled="!isFormValid" @click="updateTerms">
+          <button v-if="currentUrl.includes('config-screen') || pendingMode" class="register-link-button" :disabled="!isFormValid" @click="updateTerms">
             Atualizar termo
           </button>
         </footer>
@@ -78,15 +78,13 @@ import router from '@/router'
 import { updateTermByUser } from '@/api/ContractApi.ts'
 
 const toast = useToast()
-const showError = (errorSum: string, errorMsg: string) => {
-  toast.add({ severity: 'error', summary: errorSum, detail: errorMsg, life: 6000 })
-}
 
 const currentUrl = window.location.href;
 
 const props = defineProps<{
   visible: boolean
   actualTerm?: any
+  pendingMode?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -97,8 +95,6 @@ const isOpen = computed({
   get: () => props.visible,
   set: (value) => emit('update:visible', value),
 })
-
-const newUser: Ref<NewUser> = ref<NewUser>(JSON.parse(<string>getSessionItem('newUser')))
 
 const checkStates: Ref<Record<number, boolean>> = ref({})
 
@@ -132,10 +128,10 @@ const submitTerms = () => {
     )
 
     const newUserWithTerms: NewUser = {
-      name: newUser.value.name,
-      email: newUser.value.email,
-      phone: newUser.value.phone,
-      password: newUser.value.password,
+      name: JSON.parse(<string>getSessionItem('newUser')).name,
+      email: JSON.parse(<string>getSessionItem('newUser')).email,
+      phone: JSON.parse(<string>getSessionItem('newUser')).phone,
+      password: JSON.parse(<string>getSessionItem('newUser')).password,
       termsId: props.actualTerm.termsId,
       termAccepted: true,
       checkList: formattedCheckList,
@@ -176,7 +172,6 @@ const updateTerms = () => {
       termAccepted: true,
       checkList: formattedCheckList
     }
-
 
     updateTermByUser(updatedTerm).then(() => {
       toast.add({
