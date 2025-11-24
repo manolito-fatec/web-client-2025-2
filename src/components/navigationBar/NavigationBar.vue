@@ -99,7 +99,7 @@ const navigate = (routeName: string) => {
 }
 
 const userRole = computed(() => {
-    const role = sessionStorage.getItem('role'); 
+    const role = sessionStorage.getItem('role');
     return role ? role.toLowerCase() : null;
 });
 

@@ -43,14 +43,14 @@
       </Column>
       <Column header="Ações">
         <template #body="slotProps">
-            <Button 
-              icon="pi pi-check" 
+            <Button
+              icon="pi pi-check"
               severity="secondary"
               style="color: green"
               text
               :hidden="isPending(slotProps.data?.state)"
-              rounded 
-              @click="confirmApproval(slotProps.data)" 
+              rounded
+              @click="confirmApproval(slotProps.data)"
             />
             <Button
               icon="pi pi-trash"
@@ -182,7 +182,7 @@ const confirmDeletion = (user: AppUserTable) => {
         icon: 'pi pi-exclamation-triangle',
         acceptLabel: 'Sim, Deletar',
         rejectLabel: 'Cancelar',
-        
+
         accept: () => {
             deleteUser(user);
         },
@@ -200,7 +200,7 @@ const confirmApproval = (user: AppUserTable) => {
         icon: 'pi pi-exclamation-triangle',
         acceptLabel: 'Sim, Aprovar',
         rejectLabel: 'Cancelar',
-        
+
         accept: () => {
             approvalUser(user);
         },
