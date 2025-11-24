@@ -9,7 +9,7 @@
     <div class="field">
       <label>
         Senha
-        <input type="password" placeholder="********" v-model="password" :disabled="isLoading" />
+        <input type="password" placeholder="********" v-model="password" @keydown.enter="handleLogin" :disabled="isLoading" />
       </label>
     </div>
     <button class="btn primary" @click="handleLogin" :disabled="isLoading">
@@ -20,6 +20,13 @@
       </span>
     </button>
     <button class="btn secondary" @click="emit('toggleSign')" :disabled="isLoading">Cadastrar</button>
+
+    <ContractComponent
+      v-if="showTermsModal"
+      v-model:visible="showTermsModal"
+      :actualTerm="pendingTermData"
+      :pendingMode="pendingMode"
+    />
   </div>
 </template>
 
@@ -28,18 +35,39 @@ import { type Ref, ref } from 'vue'
 import router from '@/router'
 import { useAuthStore } from '@/api/session/auth.ts'
 import { useToast } from 'primevue/usetoast'
+import { getSessionItem } from '@/api/session/SessionManagement.ts'
+import ContractComponent from '@/components/contract/ContractComponent.vue'
+import api from '@/api/axios/AxiosConfig.ts'
 
 const toast = useToast()
-
 const emit = defineEmits(['toggleSign'])
 
 const email: Ref<string> = ref<string>('')
 const password: Ref<string> = ref<string>('')
 const isLoading: Ref<boolean> = ref<boolean>(false)
 
+const showTermsModal: Ref<boolean> = ref(false);
+const pendingTermData: Ref<any> = ref(null);
+const pendingMode:Ref<boolean> = ref(false)
+
 const showError = (errorSum: string, errorMsg: string) => {
   toast.add({ severity: 'error', summary: errorSum, detail: errorMsg, life: 6000 });
 };
+
+async function checkPendingTerms(userId: string) {
+  try {
+    const response = await api.get('http://localhost:8080/api/term/user/pending/' + userId);
+    console.log(response.data);
+    if (!response.data) {
+      throw new Error('Falha ao verificar termos pendentes');
+    }
+
+    return await response.data;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
 
 async function handleLogin() {
   isLoading.value = true;
@@ -52,62 +80,71 @@ async function handleLogin() {
 
     switch (returnStatus) {
       case 200:
-        toast.add({
-          severity: "success",
-          summary: "Login realizado!",
-          life: 3000
-        });
-        router.push("/home");
+        const userId = getSessionItem('userId');
+
+        if (userId) {
+          const termStatus = await checkPendingTerms(userId as string);
+
+          if (termStatus && termStatus.isActive === true) {
+            pendingMode.value = true;
+            pendingTermData.value = {
+              termsId: termStatus.term.termsId,
+              title: termStatus.term.title,
+              content: termStatus.term.content,
+              checkList: termStatus.checkList
+            };
+
+
+            showTermsModal.value = true;
+
+            toast.add({
+              severity: "warn",
+              summary: "Termos Pendentes",
+              detail: "Há novos termos que precisam ser aceitos antes de continuar.",
+              life: 5000
+            });
+
+          } else {
+            toast.add({
+              severity: "success",
+              summary: "Login realizado!",
+              life: 3000
+            });
+            router.push("/home");
+          }
+        } else {
+          router.push("/home");
+        }
         break;
 
       case 400:
-        showError(
-          "Dados inválidos",
-          "Verifique o e-mail e a senha e tente novamente."
-        );
+        showError("Dados inválidos", "Verifique o e-mail e a senha e tente novamente.");
         break;
 
       case 401:
       case 403:
-        showError(
-          "Credenciais incorretas",
-          "E-mail ou senha inválidos. Por favor, revise e tente novamente."
-        );
+        showError("Credenciais incorretas", "E-mail ou senha inválidos.");
         break;
 
       case 404:
-        showError(
-          "Usuário não encontrado",
-          "Não foi possível localizar sua conta. Verifique o e-mail informado."
-        );
+        showError("Usuário não encontrado", "Não foi possível localizar sua conta.");
         break;
 
       case 500:
-        showError(
-          "Erro no servidor",
-          "Ocorreu um problema interno. Tente novamente mais tarde."
-        );
+        showError("Erro no servidor", "Ocorreu um problema interno.");
         break;
 
-      case 0:
       default:
-        showError(
-          "Erro no servidor",
-          "Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente."
-        );
+        showError("Erro no servidor", "Não foi possível conectar ao servidor.");
         break;
     }
   } catch (error) {
-    showError(
-      "Erro inesperado",
-      "Houve um problema ao tentar realizar o login. Por favor, tente novamente."
-    );
+    showError("Erro inesperado", "Houve um problema ao tentar realizar o login.");
     console.error("Erro inesperado no login:", error);
   } finally {
     isLoading.value = false;
   }
 }
-
 </script>
 
 <style scoped>
@@ -136,7 +173,7 @@ async function handleLogin() {
   padding: 0 0.75rem;
   outline: none;
   transition: box-shadow 0.2s;
-  font-size: 14px; /* input costuma ter fonte maior que a label */
+  font-size: 14px;
   color: #000;
 }
 

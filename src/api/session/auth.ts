@@ -39,10 +39,11 @@ export const useAuthStore = defineStore("auth", {
         setSessionItem("userId", userId);
         setSessionItem("role", userRole);
 
+        this.configHeader.headers.Authorization = `Bearer ${token}`;
+
         const userProfile = await fetchUserProfile(userId);
         this.userId = userProfile.id.toString();
 
-        this.configHeader.headers.Authorization = `Bearer ${token}`;
 
         return 200;
       } catch (error) {

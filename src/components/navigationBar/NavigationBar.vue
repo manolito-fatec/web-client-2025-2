@@ -21,18 +21,12 @@
             @click="navigate('insights')"
           />
           <Button
-            label="Chamados"
-            text
-            plain
-            :class="['nav-item', { active: currentRouteName === 'chamados' }]"
-            @click="navigate('chamados')"
-          />
-          <Button
             label="Admin"
             text
             plain
             :class="['nav-item', { active: currentRouteName === 'admin' }]"
             @click="navigate('admin')"
+            v-if="isAdmin"
           />
         </nav>
       </div>
@@ -57,6 +51,9 @@
           </svg>
         </button>
         <div v-if="isDropdownOpen" class="dropdown-content">
+          <router-link :to="{ name: 'user-config' }" class="config-button" @click="configHandler">
+            Perfil do Usuário
+          </router-link>
           <button @click="logoutHandler" class="logout-button">Logout</button>
         </div>
       </div>
@@ -101,8 +98,21 @@ const navigate = (routeName: string) => {
   }
 }
 
+const userRole = computed(() => {
+    const role = sessionStorage.getItem('role');
+    return role ? role.toLowerCase() : null;
+});
+
+const isAdmin = computed(() => {
+  return userRole.value === 'admin';
+});
+
 const logoutHandler = () => {
   authService.logout()
+  isDropdownOpen.value = false
+}
+
+const configHandler = () => {
   isDropdownOpen.value = false
 }
 
@@ -157,7 +167,7 @@ onUnmounted(() => {
 
 .navigation {
   display: flex;
-  gap: 1rem;
+  justify-content: space-evenly;
   align-items: center;
   border-bottom: 1px solid #e0e0e0;
   padding-bottom: 0;
@@ -231,6 +241,25 @@ onUnmounted(() => {
 }
 
 .logout-button:hover {
+  background-color: #fef2f2;
+}
+
+.config-button {
+  display: block;
+  text-decoration: none;
+  background-color: transparent;
+  border: none;
+  color: #555;
+  padding: 0.75rem 1rem;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.config-button:hover {
   background-color: #fef2f2;
 }
 </style>

@@ -21,6 +21,16 @@
       tableStyle="min-width: 50rem"
     >
       <Column field="email" header="E-mail"></Column>
+      <Column field="status" header="Status">
+        <template #body="slotProps">
+
+            <i class="pi pi-circle-fill" :style="{ color: getStatusSeverity(slotProps.data?.state), marginRight: '6px' }"></i>
+            <span
+                class="p-tag" >
+                {{ slotProps.data?.state}}
+            </span>
+        </template>
+      </Column>
       <Column field="role" header="Papel">
         <template #body="slotProps">
           <Select
@@ -33,13 +43,22 @@
       </Column>
       <Column header="Ações">
         <template #body="slotProps">
-          <Button
-            icon="pi pi-trash"
-            severity="danger"
-            text
-            rounded
-            @click="deleteUser(slotProps.data)"
-          />
+            <Button
+              icon="pi pi-check"
+              severity="secondary"
+              style="color: green"
+              text
+              :hidden="isPending(slotProps.data?.state)"
+              rounded
+              @click="confirmApproval(slotProps.data)"
+            />
+            <Button
+              icon="pi pi-trash"
+              severity="danger"
+              text
+              rounded
+              @click="confirmDeletion(slotProps.data)"
+            />
         </template>
       </Column>
     </DataTable>
@@ -54,17 +73,16 @@ import Select from 'primevue/select'
 import InputText from 'primevue/inputtext'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
-
+import { useConfirm } from "primevue/useconfirm";
+import { useToast } from "primevue/usetoast";
 import type { AppUserTable } from '@/types/ObjectTypes/AppUserTable.ts'
-import api from '@/api/axios/AxiosConfig.ts'
-import { useToast } from 'primevue/usetoast'
 import { onMounted, ref, computed, type Ref } from 'vue'
 import { getUserTableData } from '@/components/UsersTable/UserTableUtils.ts'
+import { userService } from '@/api/UserService'
+import { authService } from '@/api/AuthService'
 
 const toast = useToast()
-const props = defineProps<{
-  appUsers: AppUserTable[]
-}>()
+const confirm = useConfirm();
 
 const appUsersInTable: Ref<AppUserTable[]> = ref<AppUserTable[]>([])
 const searchEmail = ref('')
@@ -75,7 +93,7 @@ const filteredUsers = computed(() => {
   let users = appUsersInTable.value
 
   if (searchEmail.value) {
-    users = users.filter(user =>
+      users = users.filter(user =>
       user.email.toLowerCase().includes(searchEmail.value.toLowerCase())
     )
   }
@@ -83,53 +101,115 @@ const filteredUsers = computed(() => {
   return users.slice().sort((a, b) => a.email.localeCompare(b.email))
 })
 
+const getStatusSeverity = (state: string) => {
+    return state!=='Pendente' ? 'green' : 'orange'
+};
+
+const isPending = (state: string) => {
+    return state!=='Pendente' ? true : false
+};
+
 function updateUsers () {
   appUsersInTable.value = getUserTableData()
 }
 
-const deleteUser = (user: AppUserTable) => {
-  api
-    .delete('user?id=' + user.id)
-    .then((response) => {
-      switch (response.status) {
-        case 200:
-          toast.add({ severity: 'success', summary: 'Usuário deletado!', life: 3000 })
-          updateUsers()
-          break
-        case 408:
-          toast.add({ severity: 'error', summary: 'Tempo de resposta excedido.', life: 3000 })
-          break
-        case 500:
-          toast.add({ severity: 'error', summary: 'Erro interno.', life: 3000 })
-          break
-      }
-    })
-    .catch(() => {
-      toast.add({ severity: 'error', summary: 'Erro ao deletar usuário.', life: 3000 })
-    })
+const deleteUser = async (user: AppUserTable) => {
+  try {
+      await userService.deleteUser(user.id);
+
+      toast.add({
+          severity: 'success',
+          summary: 'Usuário deletado!',
+          life: 3000
+      });
+
+      updateUsers();
+  } catch (error: any) {
+      toast.add({
+          severity: 'error',
+          summary: error.message || 'Erro ao deletar usuário.',
+          life: 3000
+      });
+  }
+};
+
+
+const onRoleChange = async (user: AppUserTable)  => {
+  try {
+    await userService.updateRole(user.id, user.role);
+
+    toast.add({
+      severity: 'success',
+      summary: 'Papel alterado com sucesso!',
+      life: 3000
+    });
+
+    updateUsers();
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: error.message || 'Erro ao alterar papel.',
+      life: 3000
+    });
+  }
 }
 
-const onRoleChange = (user: AppUserTable) => {
-  api
-    .post('user/role', { id: user.id, role: user.role })
-    .then((response) => {
-      switch (response.status) {
-        case 200:
-          toast.add({ severity: 'success', summary: 'Papel alterado com sucesso!', life: 3000 })
-          updateUsers()
-          break
-        case 408:
-          toast.add({ severity: 'error', summary: 'Tempo de resposta excedido.', life: 3000 })
-          break
-        case 500:
-          toast.add({ severity: 'error', summary: 'Erro interno.', life: 3000 })
-          break
-      }
-    })
-    .catch(() => {
-      toast.add({ severity: 'error', summary: 'Erro ao alterar papel.', life: 3000 })
-    })
+const approvalUser = async (user: AppUserTable) => {
+
+   try {
+    await authService.approval(user.id);
+
+    toast.add({
+      severity: 'success',
+      summary: `Usuário ${user.email} alterado com sucesso com sucesso!`,
+      life: 3000
+    });
+
+    updateUsers();
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: error.message || `Erro ao aprovar o usuário ${user.email}.`,
+      life: 3000
+    });
+  }
 }
+
+const confirmDeletion = (user: AppUserTable) => {
+    confirm.require({
+        message: `Tem certeza que deseja excluir o usuário ${user?.email}?`,
+        header: 'Confirmação de Exclusão',
+        icon: 'pi pi-exclamation-triangle',
+        acceptLabel: 'Sim, Deletar',
+        rejectLabel: 'Cancelar',
+
+        accept: () => {
+            deleteUser(user);
+        },
+
+        reject: () => {
+            toast.add({ severity: 'info', summary: 'Cancelado', detail: 'A exclusão foi cancelada.', life: 3000 });
+        }
+    });
+};
+
+const confirmApproval = (user: AppUserTable) => {
+    confirm.require({
+        message: `Tem certeza que deseja aprovar o usuário ${user?.email}?`,
+        header: 'Confirmação de Aprovação',
+        icon: 'pi pi-exclamation-triangle',
+        acceptLabel: 'Sim, Aprovar',
+        rejectLabel: 'Cancelar',
+
+        accept: () => {
+            approvalUser(user);
+        },
+
+        reject: () => {
+            toast.add({ severity: 'info', summary: 'Cancelado', detail: 'A exclusão foi cancelada.', life: 3000 });
+        }
+    });
+};
 
 onMounted(() => {
   updateUsers()
@@ -137,4 +217,5 @@ onMounted(() => {
 
 </script>
 
-<style scoped></style>
+<style scoped>
+</style>

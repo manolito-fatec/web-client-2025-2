@@ -4,6 +4,7 @@ import AccountConfirmView from '@/views/AccountConfirmView.vue'
 import DashboardView from '../views/DashboardView.vue'
 import InsightsView from '@/views/InsightsView.vue'
 import AdminPanelView from '@/views/AdminPanelView.vue'
+import UserConfigView from '@/views/UserConfigView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -32,6 +33,11 @@ const router = createRouter({
       path: '/verify-email/:token',
       component: AccountConfirmView,
       name: 'verify-email'
+    },
+    {
+      path: '/config-screen',
+      name: 'user-config',
+      component: UserConfigView
     }
   ],
 })

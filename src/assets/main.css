@@ -13,3 +13,7 @@
 .p-toast .p-toast-detail {
   font-family: Arial, sans-serif;
 }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}

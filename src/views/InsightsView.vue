@@ -3,48 +3,85 @@
     <NavigationBar></NavigationBar>
 
     <div class="filter-card">
-      <div class="p-field">
-        <label for="client-filter">Cliente</label>
-        <Dropdown
-          id="client-filter"
-          v-model="selectedClient"
-          :options="clientOptions"
-          optionLabel="name"
-          class="client-dropdown"
-        />
+      <div class="p-field-group">
+        <div class="p-field">
+          <CustomMultiSelect
+            id="client-filter"
+            label="Cliente(s)"
+            v-model="selectedClients"
+            :options="clientOptions"
+            placeholder="Selecione um ou mais clientes"
+          />
+        </div>
+
+        <div class="p-field">
+          <CustomMultiSelect
+            id="product-filter"
+            label="Produto(s)"
+            v-model="selectedProducts"
+            :options="productOptions"
+            placeholder="Selecione um ou mais produtos"
+          />
+        </div>
+
+        <div class="action-buttons">
+          <ExportButton
+            :metricsSection="slaSection"
+            :productChartSection="forecasterSection"
+            :timeChartSection="paretoSection"
+            :otherSection="insightSection"
+            :setExporting="setExporting"
+            :getExportFilterOptions="getExportFilterOptions"
+          />
+        </div>
       </div>
     </div>
 
-    <LoadingComponent v-show="insightLoading" />
-    <div v-show="!insightsData.length && !forecasterDate.length && !slaPredictionData.length" class="empty-insights-message">
-      <p>Selecione um cliente específico no filtro para ver os insights do produto.</p>
+    <LoadingComponent v-show="insightLoading || exporting" />
+
+    <div v-if="exporting" class="export-overlay">
+      <p>Gerando relatório, por favor aguarde...</p>
     </div>
 
-    <div v-if="insightsData.length && forecasterDate.length && slaPredictionData && !insightLoading ">
-      <p class="forecaster-card-title">Previsão de tickets estourarem o SLA</p>
-      <SlaPredictionCard
-        :predictionData="slaPredictionData"
-        :loading="slaPredictionLoading"
-      />
+    <div
+      v-show="!insightsData.length && !forecasterDate.length && !slaPredictionData.length && !insightLoading"
+      class="empty-insights-message"
+    >
+      <p>Selecione um cliente e/ou produto no filtro para visualizar os insights.</p>
+    </div>
 
-      <p class="forecaster-card-title">Previsão de sazonalidade e volume de tickets por produto</p>
-      <div class="chart-card-full">
-        <div class="chart-content-wrapper">
-          <ForecasterCard :forecaster="forecasterDate"></ForecasterCard>
+    <div
+      v-if="insightsData.length && forecasterDate.length && slaPredictionData.length && !insightLoading"
+      class="report-content"
+      ref="reportContainer"
+    >
+      <div ref="slaSection">
+        <p class="forecaster-card-title">Previsão de tickets estourarem o SLA</p>
+        <SlaPredictionCard :predictionData="slaPredictionData" :loading="slaPredictionLoading" />
+      </div>
+
+      <div ref="forecasterSection">
+        <p class="forecaster-card-title">Previsão de sazonalidade e volume de tickets por produto</p>
+        <div class="chart-card-full">
+          <div class="chart-content-wrapper">
+            <ForecasterCard :forecaster="forecasterDate"></ForecasterCard>
+          </div>
         </div>
       </div>
 
-      <div class="insight-section-wrapper">
+      <div class="insight-section-wrapper" ref="insightSection">
         <InsightCard :insights="insightsData" />
       </div>
 
-      <h2 class="chart-title-main">Análise de Causas Raízes</h2>
+      <div ref="paretoSection">
+        <h2 class="chart-title-main">Análise de Causas Raízes</h2>
         <ParetoChart
-          v-if="selectedClient"
+          v-if="selectedClients.length || selectedProducts.length"
           :raw-pareto-data="rawParetoData"
-          :selected-client="selectedClient"
+          :selected-clients="clientsForPareto"
           :loading="paretoLoading"
         />
+      </div>
     </div>
   </div>
 </template>
@@ -53,58 +90,100 @@
 import { onMounted, ref, type Ref, watch, computed } from 'vue'
 
 import NavigationBar from '@/components/navigationBar/NavigationBar.vue'
-import Dropdown from 'primevue/dropdown'
 import LoadingComponent from '@/components/LoadingComponent.vue'
 import InsightCard from '@/components/insightSection/InsightCard.vue'
 import ParetoChart from '@/components/ParetoChart.vue'
 import ForecasterCard from '@/components/insightSection/ForecasterCard.vue'
 import SlaPredictionCard from '@/components/SlaPredictionCard.vue'
+import CustomMultiSelect from '@/components/customFilterSelect/CustomFilterSelect.vue'
+import ExportButton from '@/components/exportButton/ExportButton.vue'
+
 import type { SlaPredictionItem } from '@/types/InsightType/Insight.ts'
+import type { RootCauseAnalysisData } from '@/types/RootCauseAnalysisResponse'
+import type { FilterCompany } from '@/types/Company'
+import type { SelectListOption } from '@/types/SelectListOption'
+import type { Forecaster, ProductInsight } from '@/types/InsightType/Insight.ts'
 
 import { getRootCauseAnalysis } from '@/api/RootCauseAnalysisApi'
 import { fetchProductInsights } from '@/api/InsightCardApi'
 import { fetchFilterOptions } from '@/api/FiltersApi'
 import { fetchSlaPrediction } from '@/api/SlaPredictionApi'
 
-import type { RootCauseAnalysisData } from '@/types/RootCauseAnalysisResponse'
-import type { FilterCompany } from '@/types/Company'
-import type { SelectListOption } from '@/types/SelectListOption'
-import type { Forecaster, ProductInsight } from '@/types/InsightType/Insight.ts'
-
-const selectedClient = ref<FilterCompany>()
+const selectedClients: Ref<FilterCompany[]> = ref([])
 const clientOptions: Ref<FilterCompany[]> = ref([])
+
+const selectedProducts: Ref<FilterCompany[]> = ref([])
+const productOptions: Ref<FilterCompany[]> = ref([])
 
 const paretoLoading: Ref<boolean> = ref(false)
 const rawParetoData: Ref<RootCauseAnalysisData> = ref({})
 
 const insightLoading: Ref<boolean> = ref(false)
+const exporting = ref(false)
 const insightsData: Ref<ProductInsight[]> = ref([])
 const forecasterDate: Ref<Forecaster[]> = ref([])
 
 const slaPredictionLoading: Ref<boolean> = ref(false)
 const slaPredictionData: Ref<SlaPredictionItem[]> = ref([])
 
-const currentPage = ref(1)
-const itemsPerPage = ref(3)
+const slaSection = ref<HTMLElement | null>(null)
+const forecasterSection = ref<HTMLElement | null>(null)
+const paretoSection = ref<HTMLElement | null>(null)
+const insightSection = ref<HTMLElement | null>(null)
 
-const loadClientOptions = async () => {
-  try {
-    const filterData = await fetchFilterOptions(3)
-    const allCompanies = filterData.allCompanies as unknown as SelectListOption[]
-    const companyOptions: FilterCompany[] = allCompanies.map((company) => ({
-      name: company.name,
-      code: company.id!.toString(),
-    }))
-    clientOptions.value = companyOptions
-  } catch (error) {
-    console.error('Error fetching filter options for clients:', error)
+const isInitialLoad: Ref<boolean> = ref(true)
+
+const getExportFilterOptions = () => {
+  const selectedClient = selectedClients.value.length > 0 ? selectedClients.value[0] : null
+  const clientName = selectedClient ? selectedClient.name : 'Geral'
+  const clientId = selectedClient ? parseInt(selectedClient.code) : undefined
+
+  return {
+    reportTitle: `Relatório de Insights - ${clientName}`,
+    clientId: clientId,
   }
 }
 
-const fetchParetoData = async (clientCode: string) => {
+const setExporting = (value: boolean) => {
+  exporting.value = value
+}
+
+const clientsForPareto = computed(() => {
+  if (selectedProducts.value.length > 0 && selectedClients.value.length === 0) {
+    return clientOptions.value
+  }
+  return selectedClients.value
+})
+
+const loadFilterOptions = async () => {
+  try {
+    const [clientFilterData, productFilterData] = await Promise.all([
+      fetchFilterOptions(10),
+      fetchFilterOptions(10),
+    ])
+
+    const allCompanies = clientFilterData.allCompanies as unknown as SelectListOption[]
+    clientOptions.value = allCompanies.map((company) => ({
+      name: company.name,
+      code: company.id!.toString(),
+    }))
+
+    selectedClients.value = [...clientOptions.value]
+
+    const allProducts = productFilterData.allProducts as unknown as SelectListOption[]
+    productOptions.value = allProducts.map((product) => ({
+      name: product.name,
+      code: product.id!.toString(),
+    }))
+  } catch (error) {
+    console.error('Error fetching filter options:', error)
+  }
+}
+
+const fetchParetoData = async (clientCodes: string[]) => {
   paretoLoading.value = true
   try {
-    const clientIdParam = clientCode === 'ALL' ? null : clientCode
+    const clientIdParam = clientCodes.length > 0 ? clientCodes.join(',') : null
     const apiData = await getRootCauseAnalysis(clientIdParam)
     rawParetoData.value = apiData || {}
   } catch (error) {
@@ -115,26 +194,34 @@ const fetchParetoData = async (clientCode: string) => {
   }
 }
 
-const fetchInsightsData = async (clientCode: string | null) => {
-  if (clientCode === 'ALL' || clientCode === null) {
+const fetchInsightsData = async () => {
+  let clientCodes = selectedClients.value.map((client) => client.code)
+  const productCodes = selectedProducts.value.map((product) => product.code)
+
+  if (clientCodes.length === 0) {
+    if (productCodes.length > 0) {
+      clientCodes = clientOptions.value.map((client) => client.code)
+    } else {
+      insightsData.value = []
+      forecasterDate.value = []
+      insightLoading.value = false
+      return
+    }
+  }
+
+  if (clientCodes.length === 0) {
     insightsData.value = []
+    forecasterDate.value = []
     insightLoading.value = false
     return
   }
 
   insightLoading.value = true
   try {
-    const customerId = parseInt(clientCode)
+    const rawInsights = await fetchProductInsights(clientCodes, productCodes)
 
-    if (!isNaN(customerId)) {
-      const rawInsights = await fetchProductInsights(customerId)
-
-      insightsData.value = cleanInsightsData(rawInsights.productInsightsData)
-      forecasterDate.value = rawInsights.seasonalityInsightData
-    } else {
-      console.warn('Invalid client ID for insights:', clientCode)
-      insightsData.value = []
-    }
+    insightsData.value = cleanInsightsData(rawInsights.productInsightsData)
+    forecasterDate.value = rawInsights.seasonalityInsightData
   } catch (error) {
     console.error('Erro ao buscar insights:', error)
     insightsData.value = []
@@ -162,22 +249,6 @@ const fetchSlaPredictionData = async (clientCode: string | null) => {
   }
 }
 
-const totalPages = computed(() => {
-  return Math.ceil(insightsData.value.length / itemsPerPage.value)
-})
-
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++
-  }
-}
-
-const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--
-  }
-}
-
 function cleanActionText(text: string): string {
   if (!text) return ''
 
@@ -197,27 +268,70 @@ function cleanInsightsData(insights: ProductInsight[]): ProductInsight[] {
   }))
 }
 
+const fetchData = () => {
+  let clientCodes = selectedClients.value.map((client) => client.code)
+  let clientCodeForSLA = clientCodes.length > 0 ? clientCodes[0] : null
+  const productCodes = selectedProducts.value.map((product) => product.code)
+
+  if (clientCodes.length === 0 && productCodes.length > 0) {
+    clientCodes = clientOptions.value.map((client) => client.code)
+    clientCodeForSLA = clientCodes.length > 0 ? clientCodes[0] : null
+  }
+
+  if (clientCodes.length > 0) {
+    fetchParetoData(clientCodes)
+    fetchSlaPredictionData(clientCodeForSLA)
+  } else {
+    rawParetoData.value = {}
+    slaPredictionData.value = []
+  }
+
+  fetchInsightsData()
+}
+
 watch(
-  selectedClient,
-  (newClient) => {
-    if (!!newClient) {
-      const clientCode = newClient.code
-      fetchParetoData(clientCode)
-      fetchInsightsData(clientCode)
-      fetchSlaPredictionData(clientCode)
-    } else {
-      slaPredictionData.value = []
+  [selectedClients, selectedProducts],
+  () => {
+    if (isInitialLoad.value) {
+      return
     }
+    fetchData()
   },
   { deep: true },
 )
 
 onMounted(async () => {
-  await loadClientOptions()
+  await loadFilterOptions()
+  fetchData()
+  isInitialLoad.value = false
 })
 </script>
 
 <style scoped>
+.filter-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.export-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+  color: #555;
+  gap: 1rem;
+}
+
 .insight-container {
   font-family: Arial, sans-serif;
   padding: 2rem;
@@ -239,7 +353,23 @@ onMounted(async () => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 2.5rem;
   display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 2rem;
+}
+
+.p-field-group {
+  display: flex;
+  gap: 2rem;
+  width: 100%;
+}
+
+.p-field {
+  display: flex;
   flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  max-width: 20rem;
 }
 
 .chart-card-full {
@@ -278,24 +408,11 @@ onMounted(async () => {
   margin-bottom: 2rem;
 }
 
-.p-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.p-field label {
-  font-weight: bold;
-  color: #555;
-  font-size: 0.9rem;
-}
-
-.client-dropdown {
-  width: 15rem;
-  max-width: 100%;
-}
-
 .insight-section-wrapper {
   margin-top: 2.5rem;
+}
+
+.action-buttons {
+  align-self: flex-end;
 }
 </style>
